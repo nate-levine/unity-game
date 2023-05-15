@@ -60,7 +60,6 @@ public class WorldMeshGenerator : MonoBehaviour
         {
             vertices.Add(vertex);
         }
-
         triangles[0].Add(m_verticesIndex + 0);
         triangles[0].Add(m_verticesIndex + 1);
         triangles[0].Add(m_verticesIndex + 2);
@@ -68,13 +67,11 @@ public class WorldMeshGenerator : MonoBehaviour
         triangles[0].Add(m_verticesIndex + 2);
         triangles[0].Add(m_verticesIndex + 3);
         m_verticesIndex += 4;
-        
         for (int i = 0; i < 3; i++)
         {
             triangles[1].Add(m_verticesIndex);
             m_verticesIndex++;
         }
-
         List<Vector2> initialUVs = new List<Vector2> {
             new Vector2(0.5f + (Mathf.Cos(theta - Mathf.PI/180.0f) * scalarUV), 0.5f + (Mathf.Sin(theta - Mathf.PI/180.0f) * scalarUV)),
             new Vector2(0.5f + (Mathf.Cos(theta) * scalarUV), 0.5f + (Mathf.Sin(theta) * scalarUV)),

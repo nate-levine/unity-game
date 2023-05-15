@@ -308,13 +308,6 @@ public class Sliceable : MonoBehaviour
         Plane slicePlane2 = new Plane(planeNormals[2], planePositions[2]);
         Plane slicePlane3 = new Plane(planeNormals[3], planePositions[3]);
 
-        List<Vector3> vertices = oldVertices;
-        List<int>[] triangles = new List<int>[2];
-        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
-        {
-            triangles[subMeshIndex] = oldTriangles[subMeshIndex];
-        }
-        List<Vector2> UVs = oldUVs;
         List<Vector3> newVertices = new List<Vector3>();
         List<int>[] newTriangles = new List<int>[2];
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -327,16 +320,16 @@ public class Sliceable : MonoBehaviour
 
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
         {
-            for (int i = 0; i < triangles[subMeshIndex].Count; i += 3)
+            for (int i = 0; i < oldTriangles[subMeshIndex].Count; i += 3)
             {
-                int tri0 = triangles[subMeshIndex][i + 0];
-                int tri1 = triangles[subMeshIndex][i + 1];
-                int tri2 = triangles[subMeshIndex][i + 2];
+                int tri0 = oldTriangles[subMeshIndex][i + 0];
+                int tri1 = oldTriangles[subMeshIndex][i + 1];
+                int tri2 = oldTriangles[subMeshIndex][i + 2];
 
                 // the average position of two midpoints of the line segments of a triangle will always be inside the triangle. That is why it is a good reference for finding whether the triangle sits within the slice planes,
                 // assuming that the triangle's edges sit within or on the slice planes.
-                Vector3 midpoint01 = (vertices[tri0] + vertices[tri1]) / 2.0f;
-                Vector3 midpoint02 = (vertices[tri0] + vertices[tri2]) / 2.0f;
+                Vector3 midpoint01 = (oldVertices[tri0] + oldVertices[tri1]) / 2.0f;
+                Vector3 midpoint02 = (oldVertices[tri0] + oldVertices[tri2]) / 2.0f;
                 Vector3 point_inside = (midpoint01 + midpoint02) / 2.0f;
 
                 bool VertSign0 = slicePlane0.GetSide(point_inside);
@@ -346,21 +339,70 @@ public class Sliceable : MonoBehaviour
 
                 if (!VertSign0 || !VertSign1 || !VertSign2 || !VertSign3)
                 {
-                    newVertices.Add(vertices[tri0]);
-                    newVertices.Add(vertices[tri1]);
-                    newVertices.Add(vertices[tri2]);
+                    newVertices.Add(oldVertices[tri0]);
+                    newVertices.Add(oldVertices[tri1]);
+                    newVertices.Add(oldVertices[tri2]);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 0);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 1);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 2);
-                    newUVs.Add(UVs[tri0]);
-                    newUVs.Add(UVs[tri1]);
-                    newUVs.Add(UVs[tri2]);
+                    newUVs.Add(oldUVs[tri0]);
+                    newUVs.Add(oldUVs[tri1]);
+                    newUVs.Add(oldUVs[tri2]);
 
                     newVerticesCount += 3;
                 }
             }
         }
 
+        return (newVertices, newTriangles, newUVs);
+    }
+    public (List<Vector3>, List<int>[], List<Vector2>) WeldMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, float maximumDifference)
+    {
+        List<Vector3> newVertices = new List<Vector3>();
+        List<int>[] newTriangles = new List<int>[2];
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            newTriangles[subMeshIndex] = new List<int>();
+        }
+        List<Vector2> newUVs = new List<Vector2>();
+
+        // this is to account for the amount of triangles added so far from all the previous sub-meshes
+        int subMeshOffset = 0;
+
+        // loop through every old vertex in the mesh
+        // NOTE: because triangles and vertices are bijective before welding, the triangle count can be used as a substitute for the vertex count.
+        // This is useful because it allows the weld to work by sub-mesh rather than the whole mesh.
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            for (int i = subMeshOffset; i < oldTriangles[subMeshIndex].Count + subMeshOffset; i++)
+            {
+                // get the vertex information, and assume that it is not a duplicate to begin with
+                Vector3 oldVertex = oldVertices[i];
+                Vector2 oldUV = oldUVs[i];
+                bool areDuplicates = false;
+                // loop through all the vertices pushed to the new mesh so far. If this old vertex happens to be a duplicate of the new mesh's vertex, don't add it to the new mesh.
+                for (int j = 0; j < newVertices.Count; j++)
+                {
+                    Vector3 newVertex = newVertices[j];
+                    Vector2 newUV = newUVs[j];
+                    // if the vertex is a duplicate, don't add it and add the triangle index for the corresponding vertex.
+                    if (Vector3.Magnitude(newVertex - oldVertex) <= maximumDifference && Vector3.Magnitude(newUV - oldUV) <= maximumDifference)
+                    {
+                        newTriangles[subMeshIndex].Add(j);
+                        areDuplicates = true;
+                    }
+                }
+                // if there are no duplicates, add new mesh data for the vertex and its corresponding triangle index.
+                if (!areDuplicates)
+                {
+                    newTriangles[subMeshIndex].Add(newVertices.Count);
+                    newVertices.Add(oldVertex);
+                    newUVs.Add(oldUV);
+                }
+            }
+            // increment the sub-mesh offset by the number of new triangles for this current sub-mesh
+            subMeshOffset += oldTriangles[subMeshIndex].Count;
+        }
         return (newVertices, newTriangles, newUVs);
     }
 }

@@ -190,6 +190,9 @@ public class ChunkMeshGenerator : MonoBehaviour
                                                              new float[2] {-normalScalar,  normalScalar },
                                                              new float[2] {-tangentScalar, tangentScalar}, };
 
+            // NOTE: There can be some cleanup here. rather than saving both sides of the mesh each time and then deleting the cutout, I can just push all the positive mesh to the chunk and recursively leave
+            // out the negative mesh. after going around, I can just ignore the remaining negative portion and not add it to the mesh. This means that I won't have to call DeleteMesh(), as the cutout part of
+            // the mesh won't be part of the chunk data anyway.
             for (int i = 0; i <= 3; i++)
             {
                 var (positiveVertices, positiveTriangles, positiveUVs, negativeVertices, negativeTriangles, negativeUVs) = this.GetComponent<Sliceable>().SliceMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, planeNormals[i], planePositions[i], planeBounds[i][0], planeBounds[i][1]);
@@ -221,8 +224,17 @@ public class ChunkMeshGenerator : MonoBehaviour
                 }
                 dictChunk.UVs.AddRange(new List<Vector2>(positiveUVs));
             }
-            // Delete positive vertices.
+            // Delete vertices inside cutout
             var (vertices, triangles, UVs) = this.GetComponent<Sliceable>().DeleteMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, planeNormals, planePositions);
+            // new List<T>() syntax makes the lists a value type instead of a reference type. This way, the dictionary chunks are not directly referencing the values, but recieving a copy of the values.
+            dictChunk.vertices = new List<Vector3>(vertices);
+            for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+            {
+                dictChunk.triangles[subMeshIndex] = new List<int>(triangles[subMeshIndex]);
+            }
+            dictChunk.UVs = new List<Vector2>(UVs);
+            // Remove redundant vertices
+            (vertices, triangles, UVs) = this.GetComponent<Sliceable>().WeldMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, 0.001f);
             // new List<T>() syntax makes the lists a value type instead of a reference type. This way, the dictionary chunks are not directly referencing the values, but recieving a copy of the values.
             dictChunk.vertices = new List<Vector3>(vertices);
             for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
