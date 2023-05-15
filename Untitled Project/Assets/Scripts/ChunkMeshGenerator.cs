@@ -190,41 +190,38 @@ public class ChunkMeshGenerator : MonoBehaviour
                                                              new float[2] {-normalScalar,  normalScalar },
                                                              new float[2] {-tangentScalar, tangentScalar}, };
 
-
-            var (positiveVertices, positiveTriangles, positiveUVs, negativeVertices, negativeTriangles, negativeUVs) = (new List<Vector3>(), new List<int>[2], new List<Vector2>(), new List<Vector3>(), new List<int>[2], new List<Vector2>());
             for (int i = 0; i <= 3; i++)
             {
-                (positiveVertices, positiveTriangles, positiveUVs, negativeVertices, negativeTriangles, negativeUVs) = this.GetComponent<Sliceable>().SliceMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, planeNormals[i], planePositions[i], planeBounds[i][0], planeBounds[i][1]);
+                var (positiveVertices, positiveTriangles, positiveUVs, negativeVertices, negativeTriangles, negativeUVs) = this.GetComponent<Sliceable>().SliceMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, planeNormals[i], planePositions[i], planeBounds[i][0], planeBounds[i][1]);
+                
                 // new List<T>() syntax makes the lists a value type instead of a reference type. This way, the dictionary chunks are not directly referencing the values, but recieving a copy of the values.
-
-                dictChunk.vertices = new List<Vector3>(positiveVertices);
+                dictChunk.vertices = new List<Vector3>(negativeVertices);
                 for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
                 {
-                    dictChunk.triangles[subMeshIndex] = new List<int>(positiveTriangles[subMeshIndex]);
+                    dictChunk.triangles[subMeshIndex] = new List<int>(negativeTriangles[subMeshIndex]);
                 }
-                dictChunk.UVs = new List<Vector2>(positiveUVs);
+                dictChunk.UVs = new List<Vector2>(negativeUVs);
 
                 // offsets triangle buffer so that the triangle indices correspond to the negative vertices tacked onto the end of the vertex buffer.
                 for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
                 {
-                    for (int j = 0; j < negativeTriangles[subMeshIndex].Count; j++)
+                    for (int j = 0; j < positiveTriangles[subMeshIndex].Count; j++)
                     {
                         // this for loop is to account for the sum of the sizes of each submesh.
                         for (int subMeshCount = 0; subMeshCount < 2; subMeshCount++)
                         {
-                            negativeTriangles[subMeshIndex][j] += positiveTriangles[subMeshCount].Count;
+                            positiveTriangles[subMeshIndex][j] += negativeTriangles[subMeshCount].Count;
                         }
                     }
                 }
-
-                dictChunk.vertices.AddRange(new List<Vector3>(negativeVertices));
+                dictChunk.vertices.AddRange(new List<Vector3>(positiveVertices));
                 for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
                 {
-                    dictChunk.triangles[subMeshIndex].AddRange(new List<int>(negativeTriangles[subMeshIndex]));
+                    dictChunk.triangles[subMeshIndex].AddRange(new List<int>(positiveTriangles[subMeshIndex]));
                 }
-                dictChunk.UVs.AddRange(new List<Vector2>(negativeUVs));
+                dictChunk.UVs.AddRange(new List<Vector2>(positiveUVs));
             }
-
+            // Delete positive vertices.
             var (vertices, triangles, UVs) = this.GetComponent<Sliceable>().DeleteMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, planeNormals, planePositions);
             // new List<T>() syntax makes the lists a value type instead of a reference type. This way, the dictionary chunks are not directly referencing the values, but recieving a copy of the values.
             dictChunk.vertices = new List<Vector3>(vertices);

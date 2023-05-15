@@ -51,8 +51,6 @@ public class WorldMeshGenerator : MonoBehaviour
             new Vector3(Mathf.Cos(theta - (Mathf.PI/180.0f)), Mathf.Sin(theta - (Mathf.PI / 180.0f)), 0.0f) * innerRadius,
             new Vector3(Mathf.Cos(theta               ), Mathf.Sin(theta                 ), 0.0f) * innerRadius,
             new Vector3(Mathf.Cos(theta               ), Mathf.Sin(theta                 ), 0.0f) * (outerRadius + m_perlinNoise[index + 1]),
-            new Vector3(Mathf.Cos(theta - (Mathf.PI/180.0f)), Mathf.Sin(theta - (Mathf.PI / 180.0f)), 0.0f) * innerRadius,
-            new Vector3(Mathf.Cos(theta               ), Mathf.Sin(theta                 ), 0.0f) * (outerRadius + m_perlinNoise[index + 1]),
             new Vector3(Mathf.Cos(theta - (Mathf.PI/180.0f)), Mathf.Sin(theta - (Mathf.PI / 180.0f)), 0.0f) * (outerRadius + m_perlinNoise[index]),
             new Vector3(0.0f, 0.0f, 0.0f),
             new Vector3(Mathf.Cos(theta               ), Mathf.Sin(theta                 ), 0.0f) * innerRadius,
@@ -63,11 +61,14 @@ public class WorldMeshGenerator : MonoBehaviour
             vertices.Add(vertex);
         }
 
-        for (int i = 0; i < 6; i++)
-        {
-            triangles[0].Add(m_verticesIndex);
-            m_verticesIndex++;
-        }
+        triangles[0].Add(m_verticesIndex + 0);
+        triangles[0].Add(m_verticesIndex + 1);
+        triangles[0].Add(m_verticesIndex + 2);
+        triangles[0].Add(m_verticesIndex + 0);
+        triangles[0].Add(m_verticesIndex + 2);
+        triangles[0].Add(m_verticesIndex + 3);
+        m_verticesIndex += 4;
+        
         for (int i = 0; i < 3; i++)
         {
             triangles[1].Add(m_verticesIndex);
@@ -77,8 +78,6 @@ public class WorldMeshGenerator : MonoBehaviour
         List<Vector2> initialUVs = new List<Vector2> {
             new Vector2(0.5f + (Mathf.Cos(theta - Mathf.PI/180.0f) * scalarUV), 0.5f + (Mathf.Sin(theta - Mathf.PI/180.0f) * scalarUV)),
             new Vector2(0.5f + (Mathf.Cos(theta) * scalarUV), 0.5f + (Mathf.Sin(theta) * scalarUV)),
-            new Vector2(0.5f + (Mathf.Cos(theta) * (scalarUV + 1.0f)), 0.5f + (Mathf.Sin(theta) * (scalarUV + 1.0f))),
-            new Vector2(0.5f + (Mathf.Cos(theta - Mathf.PI/180.0f) * scalarUV), 0.5f + (Mathf.Sin(theta - Mathf.PI/180.0f) * scalarUV)),
             new Vector2(0.5f + (Mathf.Cos(theta) * (scalarUV + 1.0f)), 0.5f + (Mathf.Sin(theta) * (scalarUV + 1.0f))),
             new Vector2(0.5f + (Mathf.Cos(theta - Mathf.PI/180.0f) * (scalarUV + 1.0f)), 0.5f + (Mathf.Sin(theta - Mathf.PI/180.0f) * (scalarUV + 1.0f))),
             new Vector2(0.5f, 0.5f),

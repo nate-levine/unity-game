@@ -66,20 +66,23 @@ public class Sliceable : MonoBehaviour
         {
             for (int i = 0; i < triangles[subMeshIndex].Count; i += 3)
             {
-                int triangleVert0 = triangles[subMeshIndex][i + 0];
-                int triangleVert1 = triangles[subMeshIndex][i + 1];
-                int triangleVert2 = triangles[subMeshIndex][i + 2];
+                int tri0 = triangles[subMeshIndex][i + 0];
+                int tri1 = triangles[subMeshIndex][i + 1];
+                int tri2 = triangles[subMeshIndex][i + 2];
+                Vector3 vert0 = vertices[tri0];
+                Vector3 vert1 = vertices[tri1];
+                Vector3 vert2 = vertices[tri2];
 
-                bool Vert0Sign = slicePlane.GetSide(vertices[triangleVert0]);
-                bool Vert1Sign = slicePlane.GetSide(vertices[triangleVert1]);
-                bool Vert2Sign = slicePlane.GetSide(vertices[triangleVert2]);
+                bool Vert0Sign = slicePlane.GetSide(vert0);
+                bool Vert1Sign = slicePlane.GetSide(vert1);
+                bool Vert2Sign = slicePlane.GetSide(vert2);
 
-                Vector3 pointA = vertices[triangleVert0];
-                Vector3 sideAB = vertices[triangleVert1] - vertices[triangleVert0];
-                Vector3 pointB = vertices[triangleVert1];
-                Vector3 sideBC = vertices[triangleVert2] - vertices[triangleVert1];
-                Vector3 pointC = vertices[triangleVert2];
-                Vector3 sideCA = vertices[triangleVert0] - vertices[triangleVert2];
+                Vector3 pointA = vert0;
+                Vector3 sideAB = vert1 - vert0;
+                Vector3 pointB = vert1;
+                Vector3 sideBC = vert2 - vert1;
+                Vector3 pointC = vert2;
+                Vector3 sideCA = vert0 - vert2;
 
                 // t is the parameter for the plane
                 // u is the parameter for the line segment
@@ -136,51 +139,47 @@ public class Sliceable : MonoBehaviour
                     (uBC >= 0.0f && uBC <= 1.0f && tBC >= planeBoundsMinimum && tBC <= planeBoundsMaximum) ||
                     (uCA >= 0.0f && uCA <= 1.0f && tCA >= planeBoundsMinimum && tCA <= planeBoundsMaximum) ||
                     sliceInside)
-                {
-                    Vector3 v0 = vertices[triangleVert0];
-                    Vector3 v1 = vertices[triangleVert1];
-                    Vector3 v2 = vertices[triangleVert2];
-
+                    {
                     Vector3 point0 = new Vector3();
                     Vector3 point1 = new Vector3();
                     Vector3 point2 = new Vector3();
 
-                    int triangle0 = triangleVert0;
-                    int triangle1 = triangleVert1;
-                    int triangle2 = triangleVert2;
+                    int pointIndex0 = tri0;
+                    int pointIndex1 = tri1;
+                    int pointIndex2 = tri2;
 
                     if (Vert0Sign == Vert1Sign)
                     {
-                        point0 = v0;
-                        point1 = v1;
-                        point2 = v2;
+                        point0 = vert0;
+                        point1 = vert1;
+                        point2 = vert2;
 
                         // keep track of what triangles correspond to what vertices.
-                        triangle0 = triangleVert0;
-                        triangle1 = triangleVert1;
-                        triangle2 = triangleVert2;
+                        pointIndex0 = tri0;
+                        pointIndex1 = tri1;
+                        pointIndex2 = tri2;
                     }
                     else if (Vert1Sign == Vert2Sign)
                     {
-                        point0 = v1;
-                        point1 = v2;
-                        point2 = v0;
+                        point0 = vert1;
+                        point1 = vert2;
+                        point2 = vert0;
 
                         // keep track of what triangles correspond to what vertices.
-                        triangle0 = triangleVert1;
-                        triangle1 = triangleVert2;
-                        triangle2 = triangleVert0;
+                        pointIndex0 = tri1;
+                        pointIndex1 = tri2;
+                        pointIndex2 = tri0;
                     }
                     else if (Vert2Sign == Vert0Sign)
                     {
-                        point0 = v2;
-                        point1 = v0;
-                        point2 = v1;
+                        point0 = vert2;
+                        point1 = vert0;
+                        point2 = vert1;
 
                         // keep track of what triangles correspond to what vertices.
-                        triangle0 = triangleVert2;
-                        triangle1 = triangleVert0;
-                        triangle2 = triangleVert1;
+                        pointIndex0 = tri2;
+                        pointIndex1 = tri0;
+                        pointIndex2 = tri1;
                     }
 
                     List<Vector3> slicedTriangleIntersections = FindIntersections(planeNormal, planePosition, point0, point1, point2);
@@ -188,48 +187,46 @@ public class Sliceable : MonoBehaviour
                     bool Vert0SignSliced = slicePlane.GetSide(point0);
                     bool Vert1SignSliced = slicePlane.GetSide(point1);
                     bool Vert2SignSliced = slicePlane.GetSide(point2);
-                    bool Vert3SignSliced = slicePlane.GetSide(slicedTriangleIntersections[0]);
-                    bool Vert4SignSliced = slicePlane.GetSide(slicedTriangleIntersections[1]);
 
                     // linearly interpolate to find UVs
                     List<Vector2> slicedUVIntersections = new List<Vector2>();
 
                     float UV0_LerpX = Mathf.InverseLerp(point0.x, point2.x, slicedTriangleIntersections[0].x);
-                    float UV0_X = Mathf.Lerp(UVs[triangle0].x, UVs[triangle2].x, UV0_LerpX);
+                    float UV0_X = Mathf.Lerp(UVs[pointIndex0].x, UVs[pointIndex2].x, UV0_LerpX);
                     float UV0_LerpY = Mathf.InverseLerp(point0.y, point2.y, slicedTriangleIntersections[0].y);
-                    float UV0_Y = Mathf.Lerp(UVs[triangle0].y, UVs[triangle2].y, UV0_LerpY);
+                    float UV0_Y = Mathf.Lerp(UVs[pointIndex0].y, UVs[pointIndex2].y, UV0_LerpY);
                     slicedUVIntersections.Add(new Vector2(UV0_X, UV0_Y));
 
                     float UV1_LerpX = Mathf.InverseLerp(point1.x, point2.x, slicedTriangleIntersections[1].x);
-                    float UV1_X = Mathf.Lerp(UVs[triangle1].x, UVs[triangle2].x, UV1_LerpX);
+                    float UV1_X = Mathf.Lerp(UVs[pointIndex1].x, UVs[pointIndex2].x, UV1_LerpX);
                     float UV1_LerpY = Mathf.InverseLerp(point1.y, point2.y, slicedTriangleIntersections[1].y);
-                    float UV1_Y = Mathf.Lerp(UVs[triangle1].y, UVs[triangle2].y, UV1_LerpY);
+                    float UV1_Y = Mathf.Lerp(UVs[pointIndex1].y, UVs[pointIndex2].y, UV1_LerpY);
                     slicedUVIntersections.Add(new Vector2(UV1_X, UV1_Y));
 
 
                     if (Vert1SignSliced)
                     {
-                        AddTriangleMeshData(slicedTriangleIntersections[0], point1, slicedTriangleIntersections[1], slicedUVIntersections[0], UVs[triangle1], slicedUVIntersections[1], subMeshIndex, true);
+                        AddTriangleMeshData(slicedTriangleIntersections[0], point1, slicedTriangleIntersections[1], slicedUVIntersections[0], UVs[pointIndex1], slicedUVIntersections[1], subMeshIndex, true);
                     }
                     else
                     {
-                        AddTriangleMeshData(slicedTriangleIntersections[0], point1, slicedTriangleIntersections[1], slicedUVIntersections[0], UVs[triangle1], slicedUVIntersections[1], subMeshIndex, false);
+                        AddTriangleMeshData(slicedTriangleIntersections[0], point1, slicedTriangleIntersections[1], slicedUVIntersections[0], UVs[pointIndex1], slicedUVIntersections[1], subMeshIndex, false);
                     }
                     if (Vert2SignSliced)
                     {
-                        AddTriangleMeshData(point2, slicedTriangleIntersections[0], slicedTriangleIntersections[1], UVs[triangle2], slicedUVIntersections[0], slicedUVIntersections[1], subMeshIndex, true);
+                        AddTriangleMeshData(point2, slicedTriangleIntersections[0], slicedTriangleIntersections[1], UVs[pointIndex2], slicedUVIntersections[0], slicedUVIntersections[1], subMeshIndex, true);
                     }
                     else
                     {
-                        AddTriangleMeshData(point2, slicedTriangleIntersections[0], slicedTriangleIntersections[1], UVs[triangle2], slicedUVIntersections[0], slicedUVIntersections[1], subMeshIndex, false);
+                        AddTriangleMeshData(point2, slicedTriangleIntersections[0], slicedTriangleIntersections[1], UVs[pointIndex2], slicedUVIntersections[0], slicedUVIntersections[1], subMeshIndex, false);
                     }
                     if (Vert0SignSliced)
                     {
-                        AddTriangleMeshData(point0, point1, slicedTriangleIntersections[0], UVs[triangle0], UVs[triangle1], slicedUVIntersections[0], subMeshIndex, true);
+                        AddTriangleMeshData(point0, point1, slicedTriangleIntersections[0], UVs[pointIndex0], UVs[pointIndex1], slicedUVIntersections[0], subMeshIndex, true);
                     }
                     else
                     {
-                        AddTriangleMeshData(point0, point1, slicedTriangleIntersections[0], UVs[triangle0], UVs[triangle1], slicedUVIntersections[0], subMeshIndex, false);
+                        AddTriangleMeshData(point0, point1, slicedTriangleIntersections[0], UVs[pointIndex0], UVs[pointIndex1], slicedUVIntersections[0], subMeshIndex, false);
                     }
                 }
                 // if there is no intersection, keep the original triangle.
@@ -237,11 +234,11 @@ public class Sliceable : MonoBehaviour
                 {
                     if (!Vert0Sign || !Vert1Sign || !Vert2Sign)
                     {
-                        AddTriangleMeshData(vertices[triangleVert0], vertices[triangleVert1], vertices[triangleVert2], UVs[triangleVert0], UVs[triangleVert1], UVs[triangleVert2], subMeshIndex, false);
+                        AddTriangleMeshData(vert0, vert1, vert2, UVs[tri0], UVs[tri1], UVs[tri2], subMeshIndex, false);
                     }
                     else
                     {
-                        AddTriangleMeshData(vertices[triangleVert0], vertices[triangleVert1], vertices[triangleVert2], UVs[triangleVert0], UVs[triangleVert1], UVs[triangleVert2], subMeshIndex, true);
+                        AddTriangleMeshData(vert0, vert1, vert2, UVs[tri0], UVs[tri1], UVs[tri2], subMeshIndex, true);
                     }
                 }
             }
@@ -332,14 +329,14 @@ public class Sliceable : MonoBehaviour
         {
             for (int i = 0; i < triangles[subMeshIndex].Count; i += 3)
             {
-                int triangleVert0 = triangles[subMeshIndex][i + 0];
-                int triangleVert1 = triangles[subMeshIndex][i + 1];
-                int triangleVert2 = triangles[subMeshIndex][i + 2];
+                int tri0 = triangles[subMeshIndex][i + 0];
+                int tri1 = triangles[subMeshIndex][i + 1];
+                int tri2 = triangles[subMeshIndex][i + 2];
 
                 // the average position of two midpoints of the line segments of a triangle will always be inside the triangle. That is why it is a good reference for finding whether the triangle sits within the slice planes,
                 // assuming that the triangle's edges sit within or on the slice planes.
-                Vector3 midpoint01 = (vertices[triangleVert0] + vertices[triangleVert1]) / 2.0f;
-                Vector3 midpoint02 = (vertices[triangleVert0] + vertices[triangleVert2]) / 2.0f;
+                Vector3 midpoint01 = (vertices[tri0] + vertices[tri1]) / 2.0f;
+                Vector3 midpoint02 = (vertices[tri0] + vertices[tri2]) / 2.0f;
                 Vector3 point_inside = (midpoint01 + midpoint02) / 2.0f;
 
                 bool VertSign0 = slicePlane0.GetSide(point_inside);
@@ -349,15 +346,15 @@ public class Sliceable : MonoBehaviour
 
                 if (!VertSign0 || !VertSign1 || !VertSign2 || !VertSign3)
                 {
-                    newVertices.Add(vertices[triangleVert0]);
-                    newVertices.Add(vertices[triangleVert1]);
-                    newVertices.Add(vertices[triangleVert2]);
+                    newVertices.Add(vertices[tri0]);
+                    newVertices.Add(vertices[tri1]);
+                    newVertices.Add(vertices[tri2]);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 0);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 1);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 2);
-                    newUVs.Add(UVs[triangleVert0]);
-                    newUVs.Add(UVs[triangleVert1]);
-                    newUVs.Add(UVs[triangleVert2]);
+                    newUVs.Add(UVs[tri0]);
+                    newUVs.Add(UVs[tri1]);
+                    newUVs.Add(UVs[tri2]);
 
                     newVerticesCount += 3;
                 }
