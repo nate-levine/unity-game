@@ -308,6 +308,13 @@ public class Sliceable : MonoBehaviour
         Plane slicePlane2 = new Plane(planeNormals[2], planePositions[2]);
         Plane slicePlane3 = new Plane(planeNormals[3], planePositions[3]);
 
+        List<Vector3> vertices = oldVertices;
+        List<int>[] triangles = new List<int>[2];
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            triangles[subMeshIndex] = oldTriangles[subMeshIndex];
+        }
+        List<Vector2> UVs = oldUVs;
         List<Vector3> newVertices = new List<Vector3>();
         List<int>[] newTriangles = new List<int>[2];
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -320,16 +327,16 @@ public class Sliceable : MonoBehaviour
 
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
         {
-            for (int i = 0; i < oldTriangles[subMeshIndex].Count; i += 3)
+            for (int i = 0; i < triangles[subMeshIndex].Count; i += 3)
             {
-                int tri0 = oldTriangles[subMeshIndex][i + 0];
-                int tri1 = oldTriangles[subMeshIndex][i + 1];
-                int tri2 = oldTriangles[subMeshIndex][i + 2];
+                int triangleVert0 = triangles[subMeshIndex][i + 0];
+                int triangleVert1 = triangles[subMeshIndex][i + 1];
+                int triangleVert2 = triangles[subMeshIndex][i + 2];
 
                 // the average position of two midpoints of the line segments of a triangle will always be inside the triangle. That is why it is a good reference for finding whether the triangle sits within the slice planes,
                 // assuming that the triangle's edges sit within or on the slice planes.
-                Vector3 midpoint01 = (oldVertices[tri0] + oldVertices[tri1]) / 2.0f;
-                Vector3 midpoint02 = (oldVertices[tri0] + oldVertices[tri2]) / 2.0f;
+                Vector3 midpoint01 = (vertices[triangleVert0] + vertices[triangleVert1]) / 2.0f;
+                Vector3 midpoint02 = (vertices[triangleVert0] + vertices[triangleVert2]) / 2.0f;
                 Vector3 point_inside = (midpoint01 + midpoint02) / 2.0f;
 
                 bool VertSign0 = slicePlane0.GetSide(point_inside);
@@ -339,15 +346,15 @@ public class Sliceable : MonoBehaviour
 
                 if (!VertSign0 || !VertSign1 || !VertSign2 || !VertSign3)
                 {
-                    newVertices.Add(oldVertices[tri0]);
-                    newVertices.Add(oldVertices[tri1]);
-                    newVertices.Add(oldVertices[tri2]);
+                    newVertices.Add(vertices[triangleVert0]);
+                    newVertices.Add(vertices[triangleVert1]);
+                    newVertices.Add(vertices[triangleVert2]);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 0);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 1);
                     newTriangles[subMeshIndex].Add(newVerticesCount + 2);
-                    newUVs.Add(oldUVs[tri0]);
-                    newUVs.Add(oldUVs[tri1]);
-                    newUVs.Add(oldUVs[tri2]);
+                    newUVs.Add(UVs[triangleVert0]);
+                    newUVs.Add(UVs[triangleVert1]);
+                    newUVs.Add(UVs[triangleVert2]);
 
                     newVerticesCount += 3;
                 }
