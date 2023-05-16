@@ -1087,7 +1087,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mass: 1
-  gravityScale: 1500
+  gravityScale: 1100
   terminalVelocity: 10
   frictionScale: 4
   dragScale: 2

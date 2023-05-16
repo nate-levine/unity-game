@@ -368,7 +368,6 @@ public class Sliceable : MonoBehaviour
 
         // this is to account for the amount of triangles added so far from all the previous sub-meshes
         int subMeshOffset = 0;
-
         // loop through every old vertex in the mesh
         // NOTE: because triangles and vertices are bijective before welding, the triangle count can be used as a substitute for the vertex count.
         // This is useful because it allows the weld to work by sub-mesh rather than the whole mesh.
