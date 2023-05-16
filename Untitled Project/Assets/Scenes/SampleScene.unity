@@ -278,7 +278,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 16
+  orthographic size: 8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -955,7 +955,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   innerRadius: 30
   outerRadius: 32
-  noiseAmplitude: 4
+  noiseAmplitude: 2
   noiseFrequency: 32
   scalarUV: 16
   vertices: []
