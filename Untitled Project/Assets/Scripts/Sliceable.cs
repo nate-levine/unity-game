@@ -366,18 +366,17 @@ public class Sliceable : MonoBehaviour
         }
         List<Vector2> newUVs = new List<Vector2>();
 
-        // this is to account for the amount of triangles added so far from all the previous sub-meshes
-        int subMeshOffset = 0;
         // loop through every old vertex in the mesh
         // NOTE: because triangles and vertices are bijective before welding, the triangle count can be used as a substitute for the vertex count.
         // This is useful because it allows the weld to work by sub-mesh rather than the whole mesh.
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
         {
-            for (int i = subMeshOffset; i < oldTriangles[subMeshIndex].Count + subMeshOffset; i++)
+            for (int i = 0; i < oldTriangles[subMeshIndex].Count; i++)
             {
                 // get the vertex information, and assume that it is not a duplicate to begin with
-                Vector3 oldVertex = oldVertices[i];
-                Vector2 oldUV = oldUVs[i];
+                int oldTriangle = oldTriangles[subMeshIndex][i];
+                Vector3 oldVertex = oldVertices[oldTriangle];
+                Vector2 oldUV = oldUVs[oldTriangle];
                 bool areDuplicates = false;
                 // loop through all the vertices pushed to the new mesh so far. If this old vertex happens to be a duplicate of the new mesh's vertex, don't add it to the new mesh.
                 for (int j = 0; j < newVertices.Count; j++)
@@ -399,8 +398,6 @@ public class Sliceable : MonoBehaviour
                     newUVs.Add(oldUV);
                 }
             }
-            // increment the sub-mesh offset by the number of new triangles for this current sub-mesh
-            subMeshOffset += oldTriangles[subMeshIndex].Count;
         }
         return (newVertices, newTriangles, newUVs);
     }
