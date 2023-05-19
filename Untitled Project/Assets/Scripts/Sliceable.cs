@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Sliceable : MonoBehaviour
 {
@@ -13,8 +16,6 @@ public class Sliceable : MonoBehaviour
     List<Vector3> newNegativeVertices = new List<Vector3>();
     List<int>[] newNegativeTriangles = new List<int>[2];
     List<Vector2> newNegativeUVs = new List<Vector2>();
-    int newPositiveVerticesCount;
-    int newNegativeVerticesCount;
 
     void Start()
     {
@@ -50,9 +51,6 @@ public class Sliceable : MonoBehaviour
         }
         newNegativeUVs.Clear();
 
-        newPositiveVerticesCount = 0;
-        newNegativeVerticesCount = 0;
-
         List<Vector3> vertices = oldVertices;
         List<int>[] triangles = new List<int>[2];
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -60,6 +58,34 @@ public class Sliceable : MonoBehaviour
             triangles[subMeshIndex] = oldTriangles[subMeshIndex];
         }
         List<Vector2> UVs = oldUVs;
+
+        // sort vertices into positive and negative sides and create a map for the indices
+        List<int> map = new List<int>();
+        for (int i = 0; i < oldVertices.Count; i++)
+        {
+            Vector3 vert = oldVertices[i];
+            Vector2 UV = oldUVs[i];
+            bool vertSign = slicePlane.GetSide(vert);
+
+            // positive side
+            if (vertSign)
+            {
+                // map
+                map.Add(newPositiveVertices.Count);
+                // add to vertices
+                newPositiveVertices.Add(vert);
+                newPositiveUVs.Add(UV);
+            }
+            // negative side
+            else if (!vertSign)
+            {
+                // map
+                map.Add(newNegativeVertices.Count);
+                // add to vertices
+                newNegativeVertices.Add(vert);
+                newNegativeUVs.Add(UV);
+            }
+        }
 
         // run algorithm for every triangle in the mesh
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -69,6 +95,7 @@ public class Sliceable : MonoBehaviour
                 int tri0 = triangles[subMeshIndex][i + 0];
                 int tri1 = triangles[subMeshIndex][i + 1];
                 int tri2 = triangles[subMeshIndex][i + 2];
+
                 Vector3 vert0 = vertices[tri0];
                 Vector3 vert1 = vertices[tri1];
                 Vector3 vert2 = vertices[tri2];
@@ -206,27 +233,59 @@ public class Sliceable : MonoBehaviour
 
                     if (Vert1SignSliced)
                     {
-                        AddTriangleMeshData(slicedTriangleIntersections[0], point1, slicedTriangleIntersections[1], slicedUVIntersections[0], UVs[pointIndex1], slicedUVIntersections[1], subMeshIndex, true);
+                        newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 0);
+                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex1]);
+                        newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 1);
+                        newPositiveVertices.Add(slicedTriangleIntersections[0]);
+                        newPositiveVertices.Add(slicedTriangleIntersections[1]);
+                        newPositiveUVs.Add(slicedUVIntersections[0]);
+                        newPositiveUVs.Add(slicedUVIntersections[1]);
                     }
-                    else
+                    else if (!Vert1SignSliced)
                     {
-                        AddTriangleMeshData(slicedTriangleIntersections[0], point1, slicedTriangleIntersections[1], slicedUVIntersections[0], UVs[pointIndex1], slicedUVIntersections[1], subMeshIndex, false);
+                        newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 0);
+                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex1]);
+                        newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 1);
+                        newNegativeVertices.Add(slicedTriangleIntersections[0]);
+                        newNegativeVertices.Add(slicedTriangleIntersections[1]);
+                        newNegativeUVs.Add(slicedUVIntersections[0]);
+                        newNegativeUVs.Add(slicedUVIntersections[1]);
                     }
                     if (Vert2SignSliced)
                     {
-                        AddTriangleMeshData(point2, slicedTriangleIntersections[0], slicedTriangleIntersections[1], UVs[pointIndex2], slicedUVIntersections[0], slicedUVIntersections[1], subMeshIndex, true);
+                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex2]);
+                        newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 0);
+                        newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 1);
+                        newPositiveVertices.Add(slicedTriangleIntersections[0]);
+                        newPositiveVertices.Add(slicedTriangleIntersections[1]);
+                        newPositiveUVs.Add(slicedUVIntersections[0]);
+                        newPositiveUVs.Add(slicedUVIntersections[1]);
                     }
                     else
                     {
-                        AddTriangleMeshData(point2, slicedTriangleIntersections[0], slicedTriangleIntersections[1], UVs[pointIndex2], slicedUVIntersections[0], slicedUVIntersections[1], subMeshIndex, false);
+                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex2]);
+                        newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 0);
+                        newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 1);
+                        newNegativeVertices.Add(slicedTriangleIntersections[0]);
+                        newNegativeVertices.Add(slicedTriangleIntersections[1]);
+                        newNegativeUVs.Add(slicedUVIntersections[0]);
+                        newNegativeUVs.Add(slicedUVIntersections[1]);
                     }
                     if (Vert0SignSliced)
                     {
-                        AddTriangleMeshData(point0, point1, slicedTriangleIntersections[0], UVs[pointIndex0], UVs[pointIndex1], slicedUVIntersections[0], subMeshIndex, true);
+                        newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 0);
+                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex0]);
+                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex1]);
+                        newPositiveVertices.Add(slicedTriangleIntersections[0]);
+                        newPositiveUVs.Add(slicedUVIntersections[0]);
                     }
-                    else
+                    else if (!Vert0SignSliced)
                     {
-                        AddTriangleMeshData(point0, point1, slicedTriangleIntersections[0], UVs[pointIndex0], UVs[pointIndex1], slicedUVIntersections[0], subMeshIndex, false);
+                        newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 0);
+                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex0]);
+                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex1]);
+                        newNegativeVertices.Add(slicedTriangleIntersections[0]);
+                        newNegativeUVs.Add(slicedUVIntersections[0]);
                     }
                 }
                 // if there is no intersection, keep the original triangle.
@@ -234,11 +293,15 @@ public class Sliceable : MonoBehaviour
                 {
                     if (!Vert0Sign || !Vert1Sign || !Vert2Sign)
                     {
-                        AddTriangleMeshData(vert0, vert1, vert2, UVs[tri0], UVs[tri1], UVs[tri2], subMeshIndex, false);
+                        newNegativeTriangles[subMeshIndex].Add(map[tri0]);
+                        newNegativeTriangles[subMeshIndex].Add(map[tri1]);
+                        newNegativeTriangles[subMeshIndex].Add(map[tri2]);
                     }
                     else
                     {
-                        AddTriangleMeshData(vert0, vert1, vert2, UVs[tri0], UVs[tri1], UVs[tri2], subMeshIndex, true);
+                        newPositiveTriangles[subMeshIndex].Add(map[tri0]);
+                        newPositiveTriangles[subMeshIndex].Add(map[tri1]);
+                        newPositiveTriangles[subMeshIndex].Add(map[tri2]);
                     }
                 }
             }
@@ -270,36 +333,7 @@ public class Sliceable : MonoBehaviour
         return (new List<Vector3> { iA, iB });
     }
 
-    public void AddTriangleMeshData(Vector3 v0, Vector3 v1, Vector3 v2, Vector2 UV0, Vector2 UV1, Vector2 UV2, int subMeshIndex, bool sign)
-    {
-
-        if (sign)
-        {
-            newPositiveVertices.Add(v0);
-            newPositiveVertices.Add(v1);
-            newPositiveVertices.Add(v2);
-            newPositiveTriangles[subMeshIndex].Add(newPositiveVerticesCount + 0);
-            newPositiveTriangles[subMeshIndex].Add(newPositiveVerticesCount + 1);
-            newPositiveTriangles[subMeshIndex].Add(newPositiveVerticesCount + 2);
-            newPositiveUVs.Add(UV0);
-            newPositiveUVs.Add(UV1);
-            newPositiveUVs.Add(UV2);
-            newPositiveVerticesCount += 3;
-        }
-        else if (!sign)
-        {
-            newNegativeVertices.Add(v0);
-            newNegativeVertices.Add(v1);
-            newNegativeVertices.Add(v2);
-            newNegativeTriangles[subMeshIndex].Add(newNegativeVerticesCount + 0);
-            newNegativeTriangles[subMeshIndex].Add(newNegativeVerticesCount + 1);
-            newNegativeTriangles[subMeshIndex].Add(newNegativeVerticesCount + 2);
-            newNegativeUVs.Add(UV0);
-            newNegativeUVs.Add(UV1);
-            newNegativeUVs.Add(UV2);
-            newNegativeVerticesCount += 3;
-        }
-    }
+    /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
 
     public (List<Vector3>, List<int>[], List<Vector2>) DeleteMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, List<Vector3> planeNormals, List<Vector3> planePositions)
     {

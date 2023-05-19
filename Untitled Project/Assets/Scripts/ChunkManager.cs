@@ -17,9 +17,9 @@ public class ChunkManager : MonoBehaviour
         chunkSize = 8;
 
 
-        for (int i = -128; i <= 128; i++)
+        for (int i = -6; i <= 6; i++)
         {
-            for (int j = -128; j <= 128; j++)
+            for (int j = -6; j <= 6; j++)
             {
                 Vector3 chunkCoordinates = new Vector3(i, j, 0);
                 Chunk chunk = new Chunk(chunkCoordinates * chunkSize);
