@@ -23,7 +23,7 @@ public class WorldMeshChunker : MonoBehaviour
             {
                 Vector3 planePosition_V = new Vector3((i * ChunkManager.Instance.chunkSize) + (ChunkManager.Instance.chunkSize / 2), 0.0f, 0.0f);
                 var (positiveVertices_V, positiveTriangles_V, positiveUVs_V, negativeVertices_V, negativeTriangles_V, negativeUVs_V) =
-                    this.GetComponent<Sliceable>().SliceMesh(vertices_V, triangles_V, UVs_V, new Vector3(1.0f, 0.0f, 0.0f), planePosition_V, -1000000.0f, 1000000.0f);
+                    this.GetComponent<Sliceable>().LineSliceMesh(vertices_V, triangles_V, UVs_V, new Vector3(1.0f, 0.0f, 0.0f), planePosition_V, -1000000.0f, 1000000.0f);
 
                 vertices_V = new List<Vector3>(positiveVertices_V);
                 for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -44,7 +44,7 @@ public class WorldMeshChunker : MonoBehaviour
                 {
                     Vector3 planePosition_H = new Vector3(0.0f, (j * ChunkManager.Instance.chunkSize) + (ChunkManager.Instance.chunkSize / 2), 0.0f);
                     var (positiveVertices_H, positiveTriangles_H, positiveUVs_H, negativeVertices_H, negativeTriangles_H, negativeUVs_H) =
-                        this.GetComponent<Sliceable>().SliceMesh(vertices_H, triangles_H, UVs_H, new Vector3(0.0f, 1.0f, 0.0f), planePosition_H, -1000000.0f, 1000000.0f);
+                        this.GetComponent<Sliceable>().LineSliceMesh(vertices_H, triangles_H, UVs_H, new Vector3(0.0f, 1.0f, 0.0f), planePosition_H, -1000000.0f, 1000000.0f);
 
                     vertices_H = new List<Vector3>(positiveVertices_H);
                     for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)

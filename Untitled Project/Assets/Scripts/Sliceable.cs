@@ -26,7 +26,7 @@ public class Sliceable : MonoBehaviour
             newNegativeTriangles[subMeshIndex] = new List<int>();
         }
     }
-    public (List<Vector3>, List<int>[], List<Vector2>, List<Vector3>, List<int>[], List<Vector2>) SliceMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, Vector3 planeNormal, Vector3 planePosition, float planeBoundsMinimum, float planeBoundsMaximum)
+    public (List<Vector3>, List<int>[], List<Vector2>, List<Vector3>, List<int>[], List<Vector2>) LineSliceMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, Vector3 planeNormal, Vector3 planePosition, float planeBoundsMinimum, float planeBoundsMaximum)
     {
         // slice plane is the plane that the mesh will be sliced by.
         Plane slicePlane = new Plane(planeNormal, planePosition);
@@ -166,7 +166,7 @@ public class Sliceable : MonoBehaviour
                     (uBC >= 0.0f && uBC <= 1.0f && tBC >= planeBoundsMinimum && tBC <= planeBoundsMaximum) ||
                     (uCA >= 0.0f && uCA <= 1.0f && tCA >= planeBoundsMinimum && tCA <= planeBoundsMaximum) ||
                     sliceInside)
-                    {
+                {
                     Vector3 point0 = new Vector3();
                     Vector3 point1 = new Vector3();
                     Vector3 point2 = new Vector3();
@@ -231,21 +231,33 @@ public class Sliceable : MonoBehaviour
                     slicedUVIntersections.Add(new Vector2(UV1_X, UV1_Y));
 
 
-                    if (Vert1SignSliced)
+                    if (Vert1SignSliced && Vert0SignSliced)
                     {
+                        // tri 1
                         newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 0);
                         newPositiveTriangles[subMeshIndex].Add(map[pointIndex1]);
                         newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 1);
+                        // tri 0
+                        newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 0);
+                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex0]);
+                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex1]);
+
                         newPositiveVertices.Add(slicedTriangleIntersections[0]);
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
                         newPositiveUVs.Add(slicedUVIntersections[1]);
                     }
-                    else if (!Vert1SignSliced)
+                    else
                     {
+                        // tri 1
                         newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 0);
                         newNegativeTriangles[subMeshIndex].Add(map[pointIndex1]);
                         newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 1);
+                        // tri 0
+                        newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 0);
+                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex0]);
+                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex1]);
+
                         newNegativeVertices.Add(slicedTriangleIntersections[0]);
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
@@ -256,6 +268,7 @@ public class Sliceable : MonoBehaviour
                         newPositiveTriangles[subMeshIndex].Add(map[pointIndex2]);
                         newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 0);
                         newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 1);
+
                         newPositiveVertices.Add(slicedTriangleIntersections[0]);
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
@@ -266,29 +279,16 @@ public class Sliceable : MonoBehaviour
                         newNegativeTriangles[subMeshIndex].Add(map[pointIndex2]);
                         newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 0);
                         newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 1);
+
                         newNegativeVertices.Add(slicedTriangleIntersections[0]);
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
                         newNegativeUVs.Add(slicedUVIntersections[1]);
                     }
-                    if (Vert0SignSliced)
-                    {
-                        newPositiveTriangles[subMeshIndex].Add(newPositiveVertices.Count + 0);
-                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex0]);
-                        newPositiveTriangles[subMeshIndex].Add(map[pointIndex1]);
-                        newPositiveVertices.Add(slicedTriangleIntersections[0]);
-                        newPositiveUVs.Add(slicedUVIntersections[0]);
-                    }
-                    else if (!Vert0SignSliced)
-                    {
-                        newNegativeTriangles[subMeshIndex].Add(newNegativeVertices.Count + 0);
-                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex0]);
-                        newNegativeTriangles[subMeshIndex].Add(map[pointIndex1]);
-                        newNegativeVertices.Add(slicedTriangleIntersections[0]);
-                        newNegativeUVs.Add(slicedUVIntersections[0]);
-                    }
                 }
                 // if there is no intersection, keep the original triangle.
+                // NOTE: Because of the way this algorithm works, these triangles that fall on the line but NOT the line segment are composed of triangles mapped to both the
+                // positive and negative vertices. Therefore, they are not created properly. This needs to be fixed if the line segment is not arbitrarily large in magnitude.
                 else
                 {
                     if (!Vert0Sign || !Vert1Sign || !Vert2Sign)
@@ -307,6 +307,208 @@ public class Sliceable : MonoBehaviour
             }
         }
         return (newPositiveVertices, newPositiveTriangles, newPositiveUVs, newNegativeVertices, newNegativeTriangles, newNegativeUVs);
+    }
+
+    public (List<Vector3>, List<int>[], List<Vector2>) LineSegmentSliceMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, Vector3 planeNormal, Vector3 planePosition, float planeBoundsMinimum, float planeBoundsMaximum)
+    {
+        // slice plane is the plane that the mesh will be sliced by.
+        Plane slicePlane = new Plane(planeNormal, planePosition);
+        Vector3 planeDir = Vector3.Normalize(Vector3.Cross(planeNormal, new Vector3(0.0f, 0.0f, 1.0f)));
+
+        newVertices.Clear();
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            newTriangles[subMeshIndex].Clear();
+        }
+        newUVs.Clear();
+
+        List<Vector3> vertices = oldVertices;
+        List<int>[] triangles = new List<int>[2];
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            triangles[subMeshIndex] = oldTriangles[subMeshIndex];
+        }
+        List<Vector2> UVs = oldUVs;
+
+        for (int i = 0; i < oldVertices.Count; i++)
+        {
+            Vector3 vert = oldVertices[i];
+            Vector2 UV = oldUVs[i];
+
+            newVertices.Add(vert);
+            newUVs.Add(UV);
+        }
+
+            // run algorithm for every triangle in the mesh
+            for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            for (int i = 0; i < triangles[subMeshIndex].Count; i += 3)
+            {
+                int tri0 = triangles[subMeshIndex][i + 0];
+                int tri1 = triangles[subMeshIndex][i + 1];
+                int tri2 = triangles[subMeshIndex][i + 2];
+
+                Vector3 vert0 = vertices[tri0];
+                Vector3 vert1 = vertices[tri1];
+                Vector3 vert2 = vertices[tri2];
+
+                bool Vert0Sign = slicePlane.GetSide(vert0);
+                bool Vert1Sign = slicePlane.GetSide(vert1);
+                bool Vert2Sign = slicePlane.GetSide(vert2);
+
+                Vector3 pointA = vert0;
+                Vector3 sideAB = vert1 - vert0;
+                Vector3 pointB = vert1;
+                Vector3 sideBC = vert2 - vert1;
+                Vector3 pointC = vert2;
+                Vector3 sideCA = vert0 - vert2;
+
+                // t is the parameter for the plane
+                // u is the parameter for the line segment
+                float uAB = (((planeDir.x) * (pointA.y - planePosition.y)) + ((planeDir.y) * (planePosition.x - pointA.x))) / ((sideAB.x * planeDir.y) - (sideAB.y * planeDir.x));
+                float tAB = (((sideAB.x) * (planePosition.y - pointA.y)) + ((sideAB.y) * (pointA.x - planePosition.x))) / ((planeDir.x * sideAB.y) - (planeDir.y * sideAB.x));
+                float uBC = (((planeDir.x) * (pointB.y - planePosition.y)) + ((planeDir.y) * (planePosition.x - pointB.x))) / ((sideBC.x * planeDir.y) - (sideBC.y * planeDir.x));
+                float tBC = (((sideBC.x) * (planePosition.y - pointB.y)) + ((sideBC.y) * (pointB.x - planePosition.x))) / ((planeDir.x * sideBC.y) - (planeDir.y * sideBC.x));
+                float uCA = (((planeDir.x) * (pointC.y - planePosition.y)) + ((planeDir.y) * (planePosition.x - pointC.x))) / ((sideCA.x * planeDir.y) - (sideCA.y * planeDir.x));
+                float tCA = (((sideCA.x) * (planePosition.y - pointC.y)) + ((sideCA.y) * (pointC.x - planePosition.x))) / ((planeDir.x * sideCA.y) - (planeDir.y * sideCA.x));
+
+                // edge case: variable to keep track off if the plane sits entirely inside the triangle.
+                bool sliceInside = false;
+                // check if plane position is between 2 intersection points. If so, the plane is within the triangle.
+                if ((uAB >= 0.0f && uAB <= 1.0f) && (uBC >= 0.0f && uBC <= 1.0f))
+                {
+                    Vector3 intersectionAB = planePosition + (tAB * planeDir);
+                    Vector3 intersectionBC = planePosition + (tBC * planeDir);
+
+                    float lerpX = (planePosition.x - intersectionAB.x) / (intersectionBC.x - intersectionAB.x);
+                    float lerpY = (planePosition.y - intersectionAB.y) / (intersectionBC.y - intersectionAB.y);
+                    if (lerpX >= 0.0f && lerpX <= 1.0f)
+                        sliceInside = true;
+                    if (lerpY >= 0.0f && lerpY <= 1.0f)
+                        sliceInside = true;
+                }
+                if ((uBC >= 0.0f && uBC <= 1.0f) && (uCA >= 0.0f && uCA <= 1.0f))
+                {
+                    Vector3 intersectionBC = planePosition + (tBC * planeDir);
+                    Vector3 intersectionCA = planePosition + (tCA * planeDir);
+
+                    float lerpX = (planePosition.x - intersectionBC.x) / (intersectionCA.x - intersectionBC.x);
+                    float lerpY = (planePosition.y - intersectionBC.y) / (intersectionCA.y - intersectionBC.y);
+                    if (lerpX >= 0.0f && lerpX <= 1.0f)
+                        sliceInside = true;
+                    if (lerpY >= 0.0f && lerpY <= 1.0f)
+                        sliceInside = true;
+                }
+                if ((uCA >= 0.0f && uCA <= 1.0f) && (uAB >= 0.0f && uAB <= 1.0f))
+                {
+                    Vector3 intersectionCA = planePosition + (tCA * planeDir);
+                    Vector3 intersectionAB = planePosition + (tAB * planeDir);
+
+                    float lerpX = (planePosition.x - intersectionCA.x) / (intersectionAB.x - intersectionCA.x);
+                    float lerpY = (planePosition.y - intersectionCA.y) / (intersectionAB.y - intersectionCA.y);
+                    if (lerpX >= 0.0f && lerpX <= 1.0f)
+                        sliceInside = true;
+                    if (lerpY >= 0.0f && lerpY <= 1.0f)
+                        sliceInside = true;
+                }
+
+                // if there is an intersection between the plane (-0.5 to 0.5) and the line segment (0.0 to 1.0), then slice along the plane by seperating the triangle into 3 new triangles.
+                // also find the intersection if the entire plane sits inside the triangle, and therefore does not intersect it.
+                if ((uAB >= 0.0f && uAB <= 1.0f && tAB >= planeBoundsMinimum && tAB <= planeBoundsMaximum) ||
+                    (uBC >= 0.0f && uBC <= 1.0f && tBC >= planeBoundsMinimum && tBC <= planeBoundsMaximum) ||
+                    (uCA >= 0.0f && uCA <= 1.0f && tCA >= planeBoundsMinimum && tCA <= planeBoundsMaximum) ||
+                    sliceInside)
+                {
+                    Vector3 point0 = new Vector3();
+                    Vector3 point1 = new Vector3();
+                    Vector3 point2 = new Vector3();
+
+                    int pointIndex0 = tri0;
+                    int pointIndex1 = tri1;
+                    int pointIndex2 = tri2;
+
+                    if (Vert0Sign == Vert1Sign)
+                    {
+                        point0 = vert0;
+                        point1 = vert1;
+                        point2 = vert2;
+
+                        // keep track of what triangles correspond to what vertices.
+                        pointIndex0 = tri0;
+                        pointIndex1 = tri1;
+                        pointIndex2 = tri2;
+                    }
+                    else if (Vert1Sign == Vert2Sign)
+                    {
+                        point0 = vert1;
+                        point1 = vert2;
+                        point2 = vert0;
+
+                        // keep track of what triangles correspond to what vertices.
+                        pointIndex0 = tri1;
+                        pointIndex1 = tri2;
+                        pointIndex2 = tri0;
+                    }
+                    else if (Vert2Sign == Vert0Sign)
+                    {
+                        point0 = vert2;
+                        point1 = vert0;
+                        point2 = vert1;
+
+                        // keep track of what triangles correspond to what vertices.
+                        pointIndex0 = tri2;
+                        pointIndex1 = tri0;
+                        pointIndex2 = tri1;
+                    }
+
+                    List<Vector3> slicedTriangleIntersections = FindIntersections(planeNormal, planePosition, point0, point1, point2);
+
+                    // linearly interpolate to find UVs
+                    List<Vector2> slicedUVIntersections = new List<Vector2>();
+
+                    float UV0_LerpX = Mathf.InverseLerp(point0.x, point2.x, slicedTriangleIntersections[0].x);
+                    float UV0_X = Mathf.Lerp(UVs[pointIndex0].x, UVs[pointIndex2].x, UV0_LerpX);
+                    float UV0_LerpY = Mathf.InverseLerp(point0.y, point2.y, slicedTriangleIntersections[0].y);
+                    float UV0_Y = Mathf.Lerp(UVs[pointIndex0].y, UVs[pointIndex2].y, UV0_LerpY);
+                    slicedUVIntersections.Add(new Vector2(UV0_X, UV0_Y));
+
+                    float UV1_LerpX = Mathf.InverseLerp(point1.x, point2.x, slicedTriangleIntersections[1].x);
+                    float UV1_X = Mathf.Lerp(UVs[pointIndex1].x, UVs[pointIndex2].x, UV1_LerpX);
+                    float UV1_LerpY = Mathf.InverseLerp(point1.y, point2.y, slicedTriangleIntersections[1].y);
+                    float UV1_Y = Mathf.Lerp(UVs[pointIndex1].y, UVs[pointIndex2].y, UV1_LerpY);
+                    slicedUVIntersections.Add(new Vector2(UV1_X, UV1_Y));
+
+
+                    // tri 1
+                    newTriangles[subMeshIndex].Add(newVertices.Count + 0);
+                    newTriangles[subMeshIndex].Add(pointIndex1);
+                    newTriangles[subMeshIndex].Add(newVertices.Count + 1);
+                    // tri 0
+                    newTriangles[subMeshIndex].Add(newVertices.Count + 0);
+                    newTriangles[subMeshIndex].Add(pointIndex0);
+                    newTriangles[subMeshIndex].Add(pointIndex1);
+                    // tri 2
+                    newTriangles[subMeshIndex].Add(pointIndex2);
+                    newTriangles[subMeshIndex].Add(newVertices.Count + 0);
+                    newTriangles[subMeshIndex].Add(newVertices.Count + 1);
+
+                    newVertices.Add(slicedTriangleIntersections[0]);
+                    newVertices.Add(slicedTriangleIntersections[1]);
+                    newUVs.Add(slicedUVIntersections[0]);
+                    newUVs.Add(slicedUVIntersections[1]);
+                }
+                // if there is no intersection, keep the original triangle.
+                // NOTE: Because of the way this algorithm works, these triangles that fall on the line but NOT the line segment are composed of triangles mapped to both the
+                // positive and negative vertices. Therefore, they are not created properly. This needs to be fixed if the line segment is not arbitrarily large in magnitude.
+                else
+                {
+                    newTriangles[subMeshIndex].Add(tri0);
+                    newTriangles[subMeshIndex].Add(tri1);
+                    newTriangles[subMeshIndex].Add(tri2);
+                }
+            }
+        }
+        return (newVertices, newTriangles, newUVs);
     }
 
     public List<Vector3> FindIntersections(Vector3 planeNormal, Vector3 planePosition, Vector3 pointA, Vector3 pointB, Vector3 pointC)
@@ -357,20 +559,46 @@ public class Sliceable : MonoBehaviour
         }
         List<Vector2> newUVs = new List<Vector2>();
 
-        int newVerticesCount = 0;
+        // sort vertices into ones to keep and ones to delete and creates a map for the indices
+        List<int> map = new List<int>();
+        for (int i = 0; i < oldVertices.Count; i++)
+        {
+            Vector3 vert = oldVertices[i];
+            Vector2 UV = oldUVs[i];
+
+            bool VertSign0 = slicePlane0.GetSide(vert);
+            bool VertSign1 = slicePlane1.GetSide(vert);
+            bool VertSign2 = slicePlane2.GetSide(vert);
+            bool VertSign3 = slicePlane3.GetSide(vert);
+
+            if (VertSign0 || VertSign1 || VertSign2 || VertSign3)
+            {
+                // map
+                map.Add(newVertices.Count);
+                // mesh data
+                newVertices.Add(vert);
+                newUVs.Add(UV);
+            }
+            else
+            {
+                // map
+                map.Add(newVertices.Count);
+                // but don't add mesh data
+            }
+        }
 
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
         {
             for (int i = 0; i < triangles[subMeshIndex].Count; i += 3)
             {
-                int triangleVert0 = triangles[subMeshIndex][i + 0];
-                int triangleVert1 = triangles[subMeshIndex][i + 1];
-                int triangleVert2 = triangles[subMeshIndex][i + 2];
+                int tri0 = triangles[subMeshIndex][i + 0];
+                int tri1 = triangles[subMeshIndex][i + 1];
+                int tri2 = triangles[subMeshIndex][i + 2];
 
                 // the average position of two midpoints of the line segments of a triangle will always be inside the triangle. That is why it is a good reference for finding whether the triangle sits within the slice planes,
                 // assuming that the triangle's edges sit within or on the slice planes.
-                Vector3 midpoint01 = (vertices[triangleVert0] + vertices[triangleVert1]) / 2.0f;
-                Vector3 midpoint02 = (vertices[triangleVert0] + vertices[triangleVert2]) / 2.0f;
+                Vector3 midpoint01 = (vertices[tri0] + vertices[tri1]) / 2.0f;
+                Vector3 midpoint02 = (vertices[tri0] + vertices[tri2]) / 2.0f;
                 Vector3 point_inside = (midpoint01 + midpoint02) / 2.0f;
 
                 bool VertSign0 = slicePlane0.GetSide(point_inside);
@@ -380,17 +608,9 @@ public class Sliceable : MonoBehaviour
 
                 if (!VertSign0 || !VertSign1 || !VertSign2 || !VertSign3)
                 {
-                    newVertices.Add(vertices[triangleVert0]);
-                    newVertices.Add(vertices[triangleVert1]);
-                    newVertices.Add(vertices[triangleVert2]);
-                    newTriangles[subMeshIndex].Add(newVerticesCount + 0);
-                    newTriangles[subMeshIndex].Add(newVerticesCount + 1);
-                    newTriangles[subMeshIndex].Add(newVerticesCount + 2);
-                    newUVs.Add(UVs[triangleVert0]);
-                    newUVs.Add(UVs[triangleVert1]);
-                    newUVs.Add(UVs[triangleVert2]);
-
-                    newVerticesCount += 3;
+                    newTriangles[subMeshIndex].Add(map[tri0]);
+                    newTriangles[subMeshIndex].Add(map[tri1]);
+                    newTriangles[subMeshIndex].Add(map[tri2]);
                 }
             }
         }
