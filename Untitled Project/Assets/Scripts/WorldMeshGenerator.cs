@@ -14,6 +14,7 @@ public class WorldMeshGenerator : MonoBehaviour
     public List<Vector3> vertices = new List<Vector3>();
     public List<int>[] triangles = new List<int>[2];
     public List<Vector2> UVs = new List<Vector2>();
+    public List<Color> colors = new List<Color>();
 
     private int m_verticesIndex = 0;
     private float[] m_perlinNoise = new float[361];
@@ -84,6 +85,19 @@ public class WorldMeshGenerator : MonoBehaviour
         foreach (Vector2 UV in initialUVs)
         {
             UVs.Add(UV);
+        }
+        List<Color> initialColors = new List<Color> {
+            new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),
+            new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),
+            new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),
+            new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),
+            new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),
+            new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),
+            new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),
+        };
+        foreach (Color color in initialColors)
+        {
+            colors.Add(color);
         }
     }
 }

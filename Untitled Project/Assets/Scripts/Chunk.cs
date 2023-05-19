@@ -8,6 +8,7 @@ public class Chunk
     public List<Vector3> vertices = new List<Vector3>();
     public List<int>[] triangles = new List<int>[2];
     public List<Vector2> UVs = new List<Vector2>();
+    public List<Color> colors = new List<Color>();
 
     public Chunk(Vector3 position)
     {

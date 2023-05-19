@@ -10,12 +10,15 @@ public class Sliceable : MonoBehaviour
     List<Vector3> newVertices = new List<Vector3>();
     List<int>[] newTriangles = new List<int>[2];
     List<Vector2> newUVs = new List<Vector2>();
+    List<Color> newColors = new List<Color>();
     List<Vector3> newPositiveVertices = new List<Vector3>();
     List<int>[] newPositiveTriangles = new List<int>[2];
     List<Vector2> newPositiveUVs = new List<Vector2>();
+    List<Color> newPositiveColors = new List<Color>();
     List<Vector3> newNegativeVertices = new List<Vector3>();
     List<int>[] newNegativeTriangles = new List<int>[2];
     List<Vector2> newNegativeUVs = new List<Vector2>();
+    List<Color> newNegativeColors = new List<Color>();
 
     void Start()
     {
@@ -26,7 +29,7 @@ public class Sliceable : MonoBehaviour
             newNegativeTriangles[subMeshIndex] = new List<int>();
         }
     }
-    public (List<Vector3>, List<int>[], List<Vector2>, List<Vector3>, List<int>[], List<Vector2>) LineSliceMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, Vector3 planeNormal, Vector3 planePosition, float planeBoundsMinimum, float planeBoundsMaximum)
+    public (List<Vector3>, List<int>[], List<Vector2>, List<Color>, List<Vector3>, List<int>[], List<Vector2>, List<Color>) LineSliceMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, List<Color> oldColors, Vector3 planeNormal, Vector3 planePosition, float planeBoundsMinimum, float planeBoundsMaximum)
     {
         // slice plane is the plane that the mesh will be sliced by.
         Plane slicePlane = new Plane(planeNormal, planePosition);
@@ -38,18 +41,21 @@ public class Sliceable : MonoBehaviour
             newTriangles[subMeshIndex].Clear();
         }
         newUVs.Clear();
+        newColors.Clear();
         newPositiveVertices.Clear();
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
         {
             newPositiveTriangles[subMeshIndex].Clear();
         }
         newPositiveUVs.Clear();
+        newPositiveColors.Clear();
         newNegativeVertices.Clear();
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
         {
             newNegativeTriangles[subMeshIndex].Clear();
         }
         newNegativeUVs.Clear();
+        newNegativeColors.Clear();
 
         List<Vector3> vertices = oldVertices;
         List<int>[] triangles = new List<int>[2];
@@ -58,6 +64,7 @@ public class Sliceable : MonoBehaviour
             triangles[subMeshIndex] = oldTriangles[subMeshIndex];
         }
         List<Vector2> UVs = oldUVs;
+        List<Color> colors = oldColors;
 
         // sort vertices into positive and negative sides and create a map for the indices
         List<int> map = new List<int>();
@@ -65,6 +72,7 @@ public class Sliceable : MonoBehaviour
         {
             Vector3 vert = oldVertices[i];
             Vector2 UV = oldUVs[i];
+            Color color = oldColors[i];
             bool vertSign = slicePlane.GetSide(vert);
 
             // positive side
@@ -75,6 +83,7 @@ public class Sliceable : MonoBehaviour
                 // add to vertices
                 newPositiveVertices.Add(vert);
                 newPositiveUVs.Add(UV);
+                newPositiveColors.Add(color);
             }
             // negative side
             else if (!vertSign)
@@ -84,6 +93,7 @@ public class Sliceable : MonoBehaviour
                 // add to vertices
                 newNegativeVertices.Add(vert);
                 newNegativeUVs.Add(UV);
+                newNegativeColors.Add(color);
             }
         }
 
@@ -246,6 +256,8 @@ public class Sliceable : MonoBehaviour
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
                         newPositiveUVs.Add(slicedUVIntersections[1]);
+                        newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
+                        newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
                     else
                     {
@@ -262,6 +274,8 @@ public class Sliceable : MonoBehaviour
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
                         newNegativeUVs.Add(slicedUVIntersections[1]);
+                        newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
+                        newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
                     if (Vert2SignSliced)
                     {
@@ -273,6 +287,8 @@ public class Sliceable : MonoBehaviour
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
                         newPositiveUVs.Add(slicedUVIntersections[1]);
+                        newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
+                        newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
                     else
                     {
@@ -284,6 +300,8 @@ public class Sliceable : MonoBehaviour
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
                         newNegativeUVs.Add(slicedUVIntersections[1]);
+                        newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
+                        newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
                 }
                 // if there is no intersection, keep the original triangle.
@@ -306,10 +324,10 @@ public class Sliceable : MonoBehaviour
                 }
             }
         }
-        return (newPositiveVertices, newPositiveTriangles, newPositiveUVs, newNegativeVertices, newNegativeTriangles, newNegativeUVs);
+        return (newPositiveVertices, newPositiveTriangles, newPositiveUVs, newPositiveColors, newNegativeVertices, newNegativeTriangles, newNegativeUVs, newNegativeColors);
     }
 
-    public (List<Vector3>, List<int>[], List<Vector2>) LineSegmentSliceMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, Vector3 planeNormal, Vector3 planePosition, float planeBoundsMinimum, float planeBoundsMaximum)
+    public (List<Vector3>, List<int>[], List<Vector2>, List<Color>) LineSegmentSliceMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, List<Color> oldColors, Vector3 planeNormal, Vector3 planePosition, float planeBoundsMinimum, float planeBoundsMaximum)
     {
         // slice plane is the plane that the mesh will be sliced by.
         Plane slicePlane = new Plane(planeNormal, planePosition);
@@ -321,6 +339,7 @@ public class Sliceable : MonoBehaviour
             newTriangles[subMeshIndex].Clear();
         }
         newUVs.Clear();
+        newColors.Clear();
 
         List<Vector3> vertices = oldVertices;
         List<int>[] triangles = new List<int>[2];
@@ -329,14 +348,17 @@ public class Sliceable : MonoBehaviour
             triangles[subMeshIndex] = oldTriangles[subMeshIndex];
         }
         List<Vector2> UVs = oldUVs;
+        List<Color> colors = oldColors;
 
         for (int i = 0; i < oldVertices.Count; i++)
         {
             Vector3 vert = oldVertices[i];
             Vector2 UV = oldUVs[i];
+            Color color = oldColors[i];
 
             newVertices.Add(vert);
             newUVs.Add(UV);
+            newColors.Add(color);
         }
 
             // run algorithm for every triangle in the mesh
@@ -496,6 +518,8 @@ public class Sliceable : MonoBehaviour
                     newVertices.Add(slicedTriangleIntersections[1]);
                     newUVs.Add(slicedUVIntersections[0]);
                     newUVs.Add(slicedUVIntersections[1]);
+                    newColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
+                    newColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                 }
                 // if there is no intersection, keep the original triangle.
                 // NOTE: Because of the way this algorithm works, these triangles that fall on the line but NOT the line segment are composed of triangles mapped to both the
@@ -508,7 +532,7 @@ public class Sliceable : MonoBehaviour
                 }
             }
         }
-        return (newVertices, newTriangles, newUVs);
+        return (newVertices, newTriangles, newUVs, newColors);
     }
 
     public List<Vector3> FindIntersections(Vector3 planeNormal, Vector3 planePosition, Vector3 pointA, Vector3 pointB, Vector3 pointC)
@@ -537,7 +561,7 @@ public class Sliceable : MonoBehaviour
 
     /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
 
-    public (List<Vector3>, List<int>[], List<Vector2>) DeleteMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, List<Vector3> planeNormals, List<Vector3> planePositions)
+    public (List<Vector3>, List<int>[], List<Vector2>, List<Color>) DeleteMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, List<Color> oldColors, List<Vector3> planeNormals, List<Vector3> planePositions)
     {
         Plane slicePlane0 = new Plane(planeNormals[0], planePositions[0]);
         Plane slicePlane1 = new Plane(planeNormals[1], planePositions[1]);
@@ -551,6 +575,7 @@ public class Sliceable : MonoBehaviour
             triangles[subMeshIndex] = oldTriangles[subMeshIndex];
         }
         List<Vector2> UVs = oldUVs;
+        List<Color> colors = oldColors;
         List<Vector3> newVertices = new List<Vector3>();
         List<int>[] newTriangles = new List<int>[2];
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -558,6 +583,7 @@ public class Sliceable : MonoBehaviour
             newTriangles[subMeshIndex] = new List<int>();
         }
         List<Vector2> newUVs = new List<Vector2>();
+        List<Color> newColors = new List<Color>();
 
         // sort vertices into ones to keep and ones to delete and creates a map for the indices
         List<int> map = new List<int>();
@@ -565,6 +591,7 @@ public class Sliceable : MonoBehaviour
         {
             Vector3 vert = oldVertices[i];
             Vector2 UV = oldUVs[i];
+            Color color = oldColors[i];
 
             bool VertSign0 = slicePlane0.GetSide(vert);
             bool VertSign1 = slicePlane1.GetSide(vert);
@@ -578,6 +605,7 @@ public class Sliceable : MonoBehaviour
                 // mesh data
                 newVertices.Add(vert);
                 newUVs.Add(UV);
+                newColors.Add(color);
             }
             else
             {
@@ -615,7 +643,7 @@ public class Sliceable : MonoBehaviour
             }
         }
 
-        return (newVertices, newTriangles, newUVs);
+        return (newVertices, newTriangles, newUVs, newColors);
     }
     public (List<Vector3>, List<int>[], List<Vector2>) WeldMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, float maximumDifference)
     {
