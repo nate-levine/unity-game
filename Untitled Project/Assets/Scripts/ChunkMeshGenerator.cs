@@ -217,16 +217,6 @@ public class ChunkMeshGenerator : MonoBehaviour
             }
             dictChunk.UVs = new List<Vector2>(UVs);
             dictChunk.colors = new List<Color>(colors);
-            /*
-            // Remove redundant vertices
-            (vertices, triangles, UVs) = this.GetComponent<Sliceable>().WeldMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, 0.0f);
-            // new List<T>() syntax makes the lists a value type instead of a reference type. This way, the dictionary chunks are not directly referencing the values, but recieving a copy of the values.
-            dictChunk.vertices = new List<Vector3>(vertices);
-            for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
-            {
-                dictChunk.triangles[subMeshIndex] = new List<int>(triangles[subMeshIndex]);
-            }
-            dictChunk.UVs = new List<Vector2>(UVs);*/
         }
     }
 

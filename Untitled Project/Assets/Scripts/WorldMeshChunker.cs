@@ -20,7 +20,7 @@ public class WorldMeshChunker : MonoBehaviour
             List<Vector2> UVs_V = new List<Vector2>(WorldMeshGenerator.Instance.UVs);
             List<Color> colors_V = new List<Color>(WorldMeshGenerator.Instance.colors);
 
-            for (int i = -6; i <= 6; i++)
+            for (int i = -64; i <= 64; i++)
             {
                 Vector3 planePosition_V = new Vector3((i * ChunkManager.Instance.chunkSize) + (ChunkManager.Instance.chunkSize / 2), 0.0f, 0.0f);
                 var (positiveVertices_V, positiveTriangles_V, positiveUVs_V, positiveColors_V, negativeVertices_V, negativeTriangles_V, negativeUVs_V, negativeColors_V) =
@@ -43,7 +43,7 @@ public class WorldMeshChunker : MonoBehaviour
                 List<Vector2> UVs_H = new List<Vector2>(negativeUVs_V);
                 List<Color> colors_H = new List<Color>(negativeColors_V);
 
-                for (int j = -6; j <= 6; j++)
+                for (int j = -64; j <= 64; j++)
                 {
                     Vector3 planePosition_H = new Vector3(0.0f, (j * ChunkManager.Instance.chunkSize) + (ChunkManager.Instance.chunkSize / 2), 0.0f);
                     var (positiveVertices_H, positiveTriangles_H, positiveUVs_H, positiveColors_H, negativeVertices_H, negativeTriangles_H, negativeUVs_H, negativeColors_H) =

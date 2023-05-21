@@ -96,6 +96,13 @@ public class Sliceable : MonoBehaviour
                 newNegativeColors.Add(color);
             }
         }
+        // to set the index offset for welding later
+        List<Vector3> oldPositiveVertices = new List<Vector3>(newPositiveVertices);
+        List<Vector2> oldPositiveUVs = new List<Vector2>(newPositiveUVs);
+        List<Color> oldPositiveColors = new List<Color>(newPositiveColors);
+        List<Vector3> oldNegativeVertices = new List<Vector3>(newNegativeVertices);
+        List<Vector2> oldNegativeUVs = new List<Vector2>(newNegativeUVs);
+        List<Color> oldNegativeColors = new List<Color>(newNegativeColors);
 
         // run algorithm for every triangle in the mesh
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -324,6 +331,63 @@ public class Sliceable : MonoBehaviour
                 }
             }
         }
+        // weld vertices along slice line
+        List<Vector3> positiveVerticesToWeld = new List<Vector3>();
+        List<Vector2> positiveUVsToWeld = new List<Vector2>();
+        List<Color> positiveColorsToWeld = new List<Color>();
+        for (int i = oldPositiveVertices.Count; i < newPositiveVertices.Count; i++)
+        {
+            positiveVerticesToWeld.Add(newPositiveVertices[i]);
+            positiveUVsToWeld.Add(newPositiveUVs[i]);
+            positiveColorsToWeld.Add(newPositiveColors[i]);
+        }
+        var (positiveWeldedVertices, positiveWeldedUVs, positiveWeldedColors, positiveWeldMap) = WeldVertices(positiveVerticesToWeld, positiveUVsToWeld, positiveColorsToWeld, 0.0f);
+
+
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            for (int i = 0; i < newPositiveTriangles[subMeshIndex].Count; i++)
+            {
+                // map
+                if (newPositiveTriangles[subMeshIndex][i] >= oldPositiveVertices.Count)
+                    newPositiveTriangles[subMeshIndex][i] = positiveWeldMap[newPositiveTriangles[subMeshIndex][i] - oldPositiveVertices.Count] + oldPositiveVertices.Count;
+            }
+        }
+        newPositiveVertices = oldPositiveVertices;
+        newPositiveVertices.AddRange(positiveWeldedVertices);
+        newPositiveUVs = oldPositiveUVs;
+        newPositiveUVs.AddRange(positiveWeldedUVs);
+        newPositiveColors = oldPositiveColors;
+        newPositiveColors.AddRange(positiveWeldedColors);
+        List<Vector3> negativeVerticesToWeld = new List<Vector3>();
+        List<Vector2> negativeUVsToWeld = new List<Vector2>();
+        List<Color> negativeColorsToWeld = new List<Color>();
+        for (int i = oldNegativeVertices.Count; i < newNegativeVertices.Count; i++)
+        {
+            negativeVerticesToWeld.Add(newNegativeVertices[i]);
+            negativeUVsToWeld.Add(newNegativeUVs[i]);
+            negativeColorsToWeld.Add(newNegativeColors[i]);
+        }
+        var (negativeWeldedVertices, negativeWeldedUVs, negativeWeldedColors, negativeWeldMap) = WeldVertices(negativeVerticesToWeld, negativeUVsToWeld, negativeColorsToWeld, 0.0f);
+
+
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            for (int i = 0; i < newNegativeTriangles[subMeshIndex].Count; i++)
+            {
+                // map
+                if (newNegativeTriangles[subMeshIndex][i] >= oldNegativeVertices.Count)
+                    newNegativeTriangles[subMeshIndex][i] = negativeWeldMap[newNegativeTriangles[subMeshIndex][i] - oldNegativeVertices.Count] + oldNegativeVertices.Count;
+            }
+        }
+        newNegativeVertices = oldNegativeVertices;
+        newNegativeVertices.AddRange(negativeWeldedVertices);
+        newNegativeUVs = oldNegativeUVs;
+        newNegativeUVs.AddRange(negativeWeldedUVs);
+        newNegativeColors = oldNegativeColors;
+        newNegativeColors.AddRange(negativeWeldedColors);
+
+        // return
         return (newPositiveVertices, newPositiveTriangles, newPositiveUVs, newPositiveColors, newNegativeVertices, newNegativeTriangles, newNegativeUVs, newNegativeColors);
     }
 
@@ -361,8 +425,8 @@ public class Sliceable : MonoBehaviour
             newColors.Add(color);
         }
 
-            // run algorithm for every triangle in the mesh
-            for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        // run algorithm for every triangle in the mesh
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
         {
             for (int i = 0; i < triangles[subMeshIndex].Count; i += 3)
             {
@@ -532,6 +596,37 @@ public class Sliceable : MonoBehaviour
                 }
             }
         }
+
+        // weld vertices along slice line
+        List<Vector3> verticesToWeld = new List<Vector3>();
+        List<Vector2> UVsToWeld = new List<Vector2>();
+        List<Color> colorsToWeld = new List<Color>();
+        for (int i = oldVertices.Count; i < newVertices.Count; i++)
+        {
+            verticesToWeld.Add(newVertices[i]);
+            UVsToWeld.Add(newUVs[i]);
+            colorsToWeld.Add(newColors[i]);
+        }
+        var (weldedVertices, weldedUVs, weldedColors, weldMap) = WeldVertices(verticesToWeld, UVsToWeld, colorsToWeld, 0.0f);
+
+
+        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        {
+            for (int i = 0; i < newTriangles[subMeshIndex].Count; i++)
+            {
+                // map
+                if (newTriangles[subMeshIndex][i] >= oldVertices.Count)
+                    newTriangles[subMeshIndex][i] = weldMap[newTriangles[subMeshIndex][i] - oldVertices.Count] + oldVertices.Count;
+            }
+        }
+        newVertices = oldVertices;
+        newVertices.AddRange(weldedVertices);
+        newUVs = oldUVs;
+        newUVs.AddRange(weldedUVs);
+        newColors = oldColors;
+        newColors.AddRange(weldedColors);
+
+        // return
         return (newVertices, newTriangles, newUVs, newColors);
     }
 
@@ -645,49 +740,46 @@ public class Sliceable : MonoBehaviour
 
         return (newVertices, newTriangles, newUVs, newColors);
     }
-    public (List<Vector3>, List<int>[], List<Vector2>) WeldMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, float maximumDifference)
+    public (List<Vector3>, List<Vector2>, List<Color>, List<int>) WeldVertices(List<Vector3> verticesToWeld, List<Vector2> UVsToWeld, List<Color> colorsToWeld, float maximumDifference)
     {
-        List<Vector3> newVertices = new List<Vector3>();
-        List<int>[] newTriangles = new List<int>[2];
-        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
-        {
-            newTriangles[subMeshIndex] = new List<int>();
-        }
-        List<Vector2> newUVs = new List<Vector2>();
+        List<Vector3> weldedVertices = new List<Vector3>();
+        List<Vector2> weldedUVs = new List<Vector2>();
+        List<Color> weldedColors = new List<Color>();
+        List<int> weldMap = new List<int>();
 
         // loop through every old vertex in the mesh
-        // NOTE: because triangles and vertices are bijective before welding, the triangle count can be used as a substitute for the vertex count.
-        // This is useful because it allows the weld to work by sub-mesh rather than the whole mesh.
-        for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
+        for (int i = 0; i < verticesToWeld.Count; i++)
         {
-            for (int i = 0; i < oldTriangles[subMeshIndex].Count; i++)
+            // get the vertex information, and assume that it is not a duplicate to begin with
+            Vector3 vertexToWeld = verticesToWeld[i];
+            Vector2 UVToWeld = UVsToWeld[i];
+            Color colorToWeld = colorsToWeld[i];
+            bool areDuplicates = false;
+            // loop through all the vertices pushed to the new mesh so far. If this old vertex happens to be a duplicate of the new mesh's vertex, don't add it to the new mesh.
+            for (int j = 0; j < weldedVertices.Count; j++)
             {
-                // get the vertex information, and assume that it is not a duplicate to begin with
-                int oldTriangle = oldTriangles[subMeshIndex][i];
-                Vector3 oldVertex = oldVertices[oldTriangle];
-                Vector2 oldUV = oldUVs[oldTriangle];
-                bool areDuplicates = false;
-                // loop through all the vertices pushed to the new mesh so far. If this old vertex happens to be a duplicate of the new mesh's vertex, don't add it to the new mesh.
-                for (int j = 0; j < newVertices.Count; j++)
+                Vector3 weldedVertex = weldedVertices[j];
+                Vector2 weldedUV = weldedUVs[j];
+                Color weldedColor = weldedColors[j];
+                // if the vertex is a duplicate, don't add it and add the triangle index for the corresponding vertex.
+                if (Vector3.Magnitude(weldedVertex - vertexToWeld) <= maximumDifference && Vector3.Magnitude(weldedUV - UVToWeld) <= maximumDifference)
                 {
-                    Vector3 newVertex = newVertices[j];
-                    Vector2 newUV = newUVs[j];
-                    // if the vertex is a duplicate, don't add it and add the triangle index for the corresponding vertex.
-                    if (Vector3.Magnitude(newVertex - oldVertex) <= maximumDifference && Vector3.Magnitude(newUV - oldUV) <= maximumDifference)
-                    {
-                        newTriangles[subMeshIndex].Add(j);
-                        areDuplicates = true;
-                    }
-                }
-                // if there are no duplicates, add new mesh data for the vertex and its corresponding triangle index.
-                if (!areDuplicates)
-                {
-                    newTriangles[subMeshIndex].Add(newVertices.Count);
-                    newVertices.Add(oldVertex);
-                    newUVs.Add(oldUV);
+                    weldMap.Add(j);
+                    areDuplicates = true;
                 }
             }
+            // if there are no duplicates, add new mesh data for the vertex and its corresponding triangle index.
+            if (!areDuplicates)
+            {
+                // map
+                weldMap.Add(weldedVertices.Count);
+                // mesh data
+                weldedVertices.Add(vertexToWeld);
+                weldedUVs.Add(UVToWeld);
+                weldedColors.Add(colorToWeld);
+            }
         }
-        return (newVertices, newTriangles, newUVs);
+        
+        return (weldedVertices, weldedUVs, weldedColors, weldMap);
     }
 }
