@@ -511,8 +511,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ff38c2f7b5f319545b57130664e8d460, type: 2}
-  - {fileID: 2100000, guid: ff38c2f7b5f319545b57130664e8d460, type: 2}
+  - {fileID: 2100000, guid: c89f855398733204084532898e95e730, type: 2}
+  - {fileID: 2100000, guid: 5f0be118dd4bd1249984518654d0f5b2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -957,7 +957,7 @@ MonoBehaviour:
   outerRadius: 92
   noiseAmplitude: 8
   noiseFrequency: 32
-  scalarUV: 16
+  scalarUV: 0.25
   vertices: []
   UVs: []
   colors: []

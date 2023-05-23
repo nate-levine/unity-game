@@ -762,7 +762,7 @@ public class Sliceable : MonoBehaviour
                 Vector2 weldedUV = weldedUVs[j];
                 Color weldedColor = weldedColors[j];
                 // if the vertex is a duplicate, don't add it and add the triangle index for the corresponding vertex.
-                if (Vector3.Magnitude(weldedVertex - vertexToWeld) <= maximumDifference && Vector3.Magnitude(weldedUV - UVToWeld) <= maximumDifference)
+                if (!areDuplicates && Vector3.Magnitude(weldedVertex - vertexToWeld) <= maximumDifference && Vector3.Magnitude(weldedUV - UVToWeld) <= maximumDifference)
                 {
                     weldMap.Add(j);
                     areDuplicates = true;

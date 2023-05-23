@@ -48,7 +48,7 @@ public class WorldMeshGenerator : MonoBehaviour
     public void CreateVertices(float theta, int index)
     {
         List<Vector3> initialVertices = new List<Vector3> {
-            new Vector3(0.0f, 0.0f, 0.0f),
+            new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0.0f) * 40.0f,
             new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0.0f) * innerRadius,
             new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0.0f) * innerRadius,
             new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0.0f) * (outerRadius + m_perlinNoise[index]),
@@ -58,10 +58,10 @@ public class WorldMeshGenerator : MonoBehaviour
             vertices.Add(vertex);
         }
         List<Vector2> initialUVs = new List<Vector2> {
-            new Vector2(0.5f, 0.5f),
-            new Vector2(0.5f + (Mathf.Cos(theta) * scalarUV), 0.5f + (Mathf.Sin(theta) * scalarUV)),
-            new Vector2(0.5f + (Mathf.Cos(theta) * scalarUV), 0.5f + (Mathf.Sin(theta) * scalarUV)),
-            new Vector2(0.5f + (Mathf.Cos(theta) * (scalarUV + 1.0f)), 0.5f + (Mathf.Sin(theta) * (scalarUV + 1.0f))),
+            new Vector2(0.5f + (Mathf.Cos(theta) * 40.0f * scalarUV), 0.5f + (Mathf.Sin(theta) * 40.0f) * scalarUV),
+            new Vector2(0.5f + (Mathf.Cos(theta) * innerRadius * scalarUV), 0.5f + (Mathf.Sin(theta) * innerRadius) * scalarUV),
+            new Vector2(0.5f + (Mathf.Cos(theta) * innerRadius * scalarUV), 0.5f + (Mathf.Sin(theta) * innerRadius) * scalarUV),
+            new Vector2(0.5f + (Mathf.Cos(theta) * (outerRadius + m_perlinNoise[index]) * scalarUV), 0.5f + (Mathf.Sin(theta) * (outerRadius + m_perlinNoise[index])) * scalarUV),
         };
         foreach (Vector2 UV in initialUVs)
         {

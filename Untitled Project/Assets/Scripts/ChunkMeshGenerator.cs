@@ -87,7 +87,8 @@ public class ChunkMeshGenerator : MonoBehaviour
             mesh.SetTriangles(meshTriangles[subMeshIndex].ToArray(), subMeshIndex);
         }
         mesh.uv = meshUVs.ToArray();
-        mesh.colors = meshColors.ToArray();
+        // for debug purposes
+        //mesh.colors = meshColors.ToArray();
     }
 
 
