@@ -11,7 +11,7 @@ public class ChunkMeshGenerator : MonoBehaviour
 {
     public static ChunkMeshGenerator Instance { get; private set; }
 
-    Mesh mesh;
+    public Mesh mesh;
     public LineController lineController;
 
     Vector3 cutoutPosition;
@@ -89,6 +89,7 @@ public class ChunkMeshGenerator : MonoBehaviour
         mesh.uv = meshUVs.ToArray();
         // for debug purposes
         //mesh.colors = meshColors.ToArray();
+        MeshOutliner.Instance.GenerateOutline(mesh);
     }
 
 
@@ -156,18 +157,6 @@ public class ChunkMeshGenerator : MonoBehaviour
                                                new Vector3((worldPosition + (tangent * tangentScalar) - (normal * normalScalar)).x, (worldPosition + (tangent * tangentScalar) - (normal * normalScalar)).y, 0.0f),};
         }
 
-        /*if (Input.GetMouseButtonDown(1))
-        {
-            rightMouseDown = true;
-            worldPositionInitial = worldPosition;
-        }
-        else if (Input.GetMouseButtonUp(1) && rightMouseDown)
-        {
-            rightMouseDown = false;
-            PlaceMesh(worldPosition + new Vector3(0.0f, 0.0f, 1.0f), tangent, tangentScalar, normal, normalScalar);
-            ChunkLoader.Instance.LoadChunks();
-        }*/
-
         lineController.RenderLine(linePoints);
     }
 
@@ -219,36 +208,5 @@ public class ChunkMeshGenerator : MonoBehaviour
             dictChunk.UVs = new List<Vector2>(UVs);
             dictChunk.colors = new List<Color>(colors);
         }
-    }
-
-    void PlaceMesh(Vector3 worldPosition, Vector3 tangent, float tangentScalar, Vector3 normal, float normalScalar)
-    {
-        cutoutPosition = new Vector3(worldPosition.x, worldPosition.y, 0.0f);
-        Vector3 position = cutoutPosition - transform.position;
-
-        Vector3 chunkKey = new Vector3((int)(position.x / 8.0f), (int)(position.y / 8.0f), 0);
-        Chunk dictChunk = ChunkManager.Instance.chunkDictionary[chunkKey];
-
-        List<Vector3> vertices = new List<Vector3>() { position + (tangent * tangentScalar) - (normal * normalScalar),
-                                                       position - (tangent * tangentScalar) - (normal * normalScalar),
-                                                       position - (tangent * tangentScalar) + (normal * normalScalar),
-                                                       position + (tangent * tangentScalar) - (normal * normalScalar),
-                                                       position - (tangent * tangentScalar) + (normal * normalScalar),
-                                                       position + (tangent * tangentScalar) + (normal * normalScalar), };
-        List<int> triangles = new List<int>() { dictChunk.vertices.Count + 0,
-                                                dictChunk.vertices.Count + 1,
-                                                dictChunk.vertices.Count + 2,
-                                                dictChunk.vertices.Count + 3,
-                                                dictChunk.vertices.Count + 4,
-                                                dictChunk.vertices.Count + 5, };
-        List<Vector2> UVs = new List<Vector2>() { new Vector2(1.0f, 0.0f),
-                                                  new Vector2(0.0f, 0.0f),
-                                                  new Vector2(0.0f, 1.0f),
-                                                  new Vector2(1.0f, 0.0f),
-                                                  new Vector2(0.0f, 1.0f),
-                                                  new Vector2(1.0f, 1.0f), };
-        dictChunk.vertices.AddRange(vertices);
-        dictChunk.triangles[0].AddRange(triangles);
-        dictChunk.UVs.AddRange(UVs);
     }
 }
