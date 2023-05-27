@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MeshOutliner : MonoBehaviour
@@ -12,41 +13,17 @@ public class MeshOutliner : MonoBehaviour
     List<int> meshIndices = new List<int>();
     List<Color> meshColors = new List<Color>();
 
-    // A struct to store edge data
+    public float lineThickness;
+
     struct Edge
     {
-        public Vector3 vertex0;
-        public Vector3 vertex1;
+        public int tri0;
+        public int tri1;
 
-        // not rendered but used for calculations
-        public Vector3 vertex2;
-    }
-    struct Line
-    {
-        public List<Vector3> verts;
-        public List<int> ints;
-        public List<Color> colors;
-
-        public Line(Vector3 v0, Vector3 v1, Vector3 v2, float thickness, int offset)
+        public Edge(int t0, int t1)
         {
-            verts = new List<Vector3>();
-            ints = new List<int>();
-            colors = new List<Color>();
-
-            Vector3 tangent = (v1 - v0).normalized;
-            Vector3 normal = Vector3.Cross(new Vector3(0.0f, 0.0f, 1.0f), tangent).normalized;
-
-            verts.Add((v1 + (( tangent - normal) * thickness)));
-            verts.Add((v0 + ((-tangent - normal) * thickness)));
-            verts.Add((v0 + ((-tangent + normal) * thickness)));
-            verts.Add((v1 + (( tangent + normal) * thickness)));
-
-            ints.AddRange(new List<int>(){ 0 + offset, 1 + offset, 2 + offset, 0 + offset, 2 + offset, 3 + offset });
-
-            colors.Add(new Color(0.0f, 0.0f, 0.0f));
-            colors.Add(new Color(0.0f, 0.0f, 0.0f));
-            colors.Add(new Color(0.0f, 0.0f, 0.0f));
-            colors.Add(new Color(0.0f, 0.0f, 0.0f));
+            tri0 = t0;
+            tri1 = t1;
         }
     }
 
@@ -90,12 +67,14 @@ public class MeshOutliner : MonoBehaviour
         UVs.AddRange(worldMesh.uv);
         colors.AddRange(worldMesh.colors);
 
-        /* This dictionary contains <edge data, # of similar edges> in <Edge, int> form.
-         * The first vertex of the edge contains the 2D position of the vertex of the edge with the lowest x-position.
-         * This decision is arbitrary, and is only one of many methods to consistantly organize edges into similar groups,
-         * without needing to know which vertex of the edge to start with.
-         */
-        Dictionary<Edge, int> edgeDictionary = new Dictionary<Edge, int>();
+        List<Edge>[] vertEdges = new List<Edge>[vertices.Count];
+        for (int i = 0; i < vertEdges.Length; i++)
+        {
+            vertEdges[i] = new List<Edge>();
+        }
+        int[] vertTrianglesCount = new int[vertices.Count];
+        int[] vertEdgesCount = new int[vertices.Count];
+        List<int> borderVertIndices = new List<int>();
 
         // iterate through each edge of each triangle in the mesh.
         for (int subMeshIndex = 0; subMeshIndex < worldMesh.subMeshCount; subMeshIndex++)
@@ -106,94 +85,139 @@ public class MeshOutliner : MonoBehaviour
                 int tri0 = triangles[subMeshIndex][i + 0];
                 int tri1 = triangles[subMeshIndex][i + 1];
                 int tri2 = triangles[subMeshIndex][i + 2];
-                Vector3 vert0 = vertices[tri0];
-                Vector3 vert1 = vertices[tri1];
-                Vector3 vert2 = vertices[tri2];
 
-                // initialize edges
-                Edge edge0 = new Edge();
-                Edge edge1 = new Edge();
-                Edge edge2 = new Edge();
-                // input edge data
-                if (vert0.x < vert1.x)
-                {
-                    edge0.vertex0 = vert0;
-                    edge0.vertex1 = vert1;
-                    edge0.vertex2 = vert2;
-                }
-                else
-                {
-                    edge0.vertex0 = vert1;
-                    edge0.vertex1 = vert0;
-                    edge0.vertex2 = vert2;
-                }
-                if (vert1.x < vert2.x)
-                {
-                    edge1.vertex0 = vert1;
-                    edge1.vertex1 = vert2;
-                    edge1.vertex2 = vert0;
-                }
-                else
-                {
-                    edge1.vertex0 = vert2;
-                    edge1.vertex1 = vert1;
-                    edge1.vertex2 = vert0;
-                }
-                if (vert2.x < vert0.x)
-                {
-                    edge2.vertex0 = vert2;
-                    edge2.vertex1 = vert0;
-                    edge2.vertex2 = vert1;
-                }
-                else
-                {
-                    edge2.vertex0 = vert0;
-                    edge2.vertex1 = vert2;
-                    edge2.vertex2 = vert1;
-                }
+                vertTrianglesCount[tri0]++;
+                vertTrianglesCount[tri1]++;
+                vertTrianglesCount[tri2]++;
 
-                // iterate through each edge in the triangle
-                Edge[] edges = new Edge[3] { edge0, edge1, edge2 };
-                foreach (Edge edge in edges)
-                {
-                    // if the dictionary already contains a similar edge, increment the count by 1.
-                    if (edgeDictionary.ContainsKey(edge))
-                    {
-                        edgeDictionary[edge]++;
-                    }
-                    // if no similar edge is in the dictionary, add the edge with a count of 1.
-                    else
-                    {
-                        edgeDictionary.Add(edge, 1);
-                    }
-                }
+                vertEdges[tri0].Add(new Edge(tri0, tri1));
+                vertEdges[tri0].Add(new Edge(tri0, tri2));
+
+                vertEdges[tri1].Add(new Edge(tri1, tri0));
+                vertEdges[tri1].Add(new Edge(tri1, tri2));
+
+                vertEdges[tri2].Add(new Edge(tri2, tri0));
+                vertEdges[tri2].Add(new Edge(tri2, tri1));
             }
         }
 
-        // iterate through every dictionary key, value pair
-        foreach (KeyValuePair<Edge, int> edgeEntry in edgeDictionary)
+        for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
         {
-            // if the entry is unique (value is 1), then the key (edge information) is not shared, and therefore is on the outline of the mesh.
-            if (edgeEntry.Value == 1)
-            {
-                // Create new line.
-                int offset = meshVertices.Count;
-                Line line = new Line(edgeEntry.Key.vertex0, edgeEntry.Key.vertex1, edgeEntry.Key.vertex2, 0.05f, offset);
+            List<Edge> newVertEdges = new List<Edge>();
+            vertEdgesCount[vertIndex] = 0;
 
-                foreach (Vector3 vertex in line.verts)
+            for (int i = 0; i < vertEdges[vertIndex].Count; i++)
+            {
+                bool duplicate = false;
+                Edge edgeA = vertEdges[vertIndex][i];
+
+                for (int j = 0; j < newVertEdges.Count; j++)
                 {
-                    meshVertices.Add(vertex);
+                    Edge edgeB = newVertEdges[j];
+
+                    if ((i != j) && (edgeA.tri0 == edgeB.tri0) && (edgeA.tri1 == edgeB.tri1))
+                    {
+                        duplicate = true;
+                    }
                 }
-                foreach (int index in line.ints)
+
+                if (!duplicate)
                 {
-                    meshIndices.Add(index);
-                }
-                foreach (Color color in line.colors)
-                {
-                    meshColors.Add(color);
+                    vertEdgesCount[vertIndex]++;
+                    newVertEdges.Add(edgeA);
                 }
             }
         }
+
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            if (vertTrianglesCount[i] < vertEdgesCount[i])
+            {
+                borderVertIndices.Add(i);
+            }
+        }
+
+        List<int> newBorderVertIndices = new List<int>();
+        for (int i = 0; i < borderVertIndices.Count; i++)
+        {
+            bool duplicate = false;
+
+            int indexA = borderVertIndices[i];
+            Vector3 vertexA = vertices[indexA];
+
+            for (int j = 0; j < newBorderVertIndices.Count; j++)
+            {
+                int indexB = newBorderVertIndices[j];
+                Vector3 vertexB = vertices[indexB];
+
+                if (vertexA == vertexB)
+                {
+                    vertTrianglesCount[indexB] += vertTrianglesCount[indexA];
+
+                    //
+                    List<Edge> combinedEdges = new List<Edge>();
+                    combinedEdges.AddRange(vertEdges[indexA]);
+                    combinedEdges.AddRange(vertEdges[indexB]);
+
+                    List<Edge> finalVertEdges = new List<Edge>();
+                    for (int k = 0; k < combinedEdges.Count; k++)
+                    {
+                        bool edgeDuplicate = false;
+                        Edge edgeA = combinedEdges[k];
+
+                        for (int m = 0; m < finalVertEdges.Count; m++)
+                        {
+                            Edge edgeB = finalVertEdges[m];
+
+                            if ((vertices[edgeA.tri0] == vertices[edgeB.tri0]) && (vertices[edgeA.tri1] == vertices[edgeB.tri1]))
+                            {
+                                edgeDuplicate = true;
+                            }
+                        }
+                        if (!edgeDuplicate)
+                        {
+                            finalVertEdges.Add(edgeA);
+                        }
+                    }
+                    vertEdgesCount[indexB] = finalVertEdges.Count;
+
+                    duplicate = true;
+                }
+            }
+            if (!duplicate)
+            {
+                newBorderVertIndices.Add(indexA);
+            }
+        }
+
+        List<int> finalBorderVertIndices = new List<int>();
+        for (int i = 0; i < newBorderVertIndices.Count; i++)
+        {
+            int index = newBorderVertIndices[i];
+
+            if (vertTrianglesCount[index] < vertEdgesCount[index])
+            {
+                finalBorderVertIndices.Add(index);
+            }
+        }
+
+        for (int i = 0; i < finalBorderVertIndices.Count; i++)
+        {
+            Vector3 vertex = vertices[finalBorderVertIndices[i]];
+
+            meshVertices.Add(vertex + new Vector3( lineThickness, -lineThickness, 0.0f));
+            meshVertices.Add(vertex + new Vector3(-lineThickness, -lineThickness, 0.0f));
+            meshVertices.Add(vertex + new Vector3(-lineThickness,  lineThickness, 0.0f));
+            meshVertices.Add(vertex + new Vector3( lineThickness,  lineThickness, 0.0f));
+
+            meshIndices.Add((i * 4) + 0);
+            meshIndices.Add((i * 4) + 1);
+            meshIndices.Add((i * 4) + 2);
+            meshIndices.Add((i * 4) + 0);
+            meshIndices.Add((i * 4) + 2);
+            meshIndices.Add((i * 4) + 3);
+        }
+
 
         // Render the line.
         mesh.Clear();
