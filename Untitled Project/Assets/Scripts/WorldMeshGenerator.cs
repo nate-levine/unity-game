@@ -14,6 +14,7 @@ public class WorldMeshGenerator : MonoBehaviour
     public List<Vector3> vertices = new List<Vector3>();
     public List<int>[] triangles = new List<int>[2];
     public List<Vector2> UVs = new List<Vector2>();
+    public List<Vector2> UV2s = new List<Vector2>();
     public List<Color> colors = new List<Color>();
 
     private float[] m_perlinNoise = new float[180];
@@ -66,6 +67,17 @@ public class WorldMeshGenerator : MonoBehaviour
         foreach (Vector2 UV in initialUVs)
         {
             UVs.Add(UV);
+        }
+        List<Vector2> initialUV2s = new List<Vector2>
+        {
+            new Vector2(1.0f, 0.0f),
+            new Vector2(0.0f, 0.0f),
+            new Vector2(0.0f, 0.0f),
+            new Vector2(1.0f, 0.0f),
+        };
+        foreach (Vector2 UV2 in initialUV2s)
+        {
+            UV2s.Add(UV2);
         }
         List<Color> initialColors = new List<Color> {
             new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f),

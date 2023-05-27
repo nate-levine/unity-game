@@ -19,6 +19,7 @@ public class ChunkMeshGenerator : MonoBehaviour
     List<Vector3> meshVertices = new List<Vector3>();
     List<int>[] meshTriangles = new List<int>[2];
     List<Vector2> meshUVs = new List<Vector2>();
+    List<Vector2> meshUV2s = new List<Vector2>();
     List<Color> meshColors = new List<Color>();
 
     Vector3 screenPosition;
@@ -55,6 +56,7 @@ public class ChunkMeshGenerator : MonoBehaviour
             meshTriangles[subMeshIndex].Clear();
         }
         meshUVs.Clear();
+        meshUV2s.Clear();
         meshColors.Clear();
         mesh.Clear();
     }
@@ -76,6 +78,7 @@ public class ChunkMeshGenerator : MonoBehaviour
             verticesIndex += chunk.vertices.Count;
 
             meshUVs.AddRange(chunk.UVs);
+            meshUV2s.AddRange(chunk.UV2s);
             meshColors.AddRange(chunk.colors);
         }
 
@@ -87,6 +90,7 @@ public class ChunkMeshGenerator : MonoBehaviour
             mesh.SetTriangles(meshTriangles[subMeshIndex].ToArray(), subMeshIndex);
         }
         mesh.uv = meshUVs.ToArray();
+        mesh.uv2 = meshUV2s.ToArray();
         // for debug purposes
         mesh.colors = meshColors.ToArray();
 
@@ -184,10 +188,10 @@ public class ChunkMeshGenerator : MonoBehaviour
                                                              new float[2] {-normalScalar , normalScalar },
                                                              new float[2] {-tangentScalar, tangentScalar}, };
 
-            var (vertices, triangles, UVs, colors) = (new List<Vector3>(), new List<int>[2], new List<Vector2>(), new List<Color>());
+            var (vertices, triangles, UVs, UV2s, colors) = (new List<Vector3>(), new List<int>[2], new List<Vector2>(), new List<Vector2>(), new List<Color>());
             for (int i = 0; i <= 3; i++)
             {
-                (vertices, triangles, UVs, colors) = this.GetComponent<Sliceable>().LineSegmentSliceMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, dictChunk.colors, planeNormals[i], planePositions[i], planeBounds[i][0], planeBounds[i][1]);
+                (vertices, triangles, UVs, UV2s, colors) = this.GetComponent<Sliceable>().LineSegmentSliceMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, dictChunk.UV2s, dictChunk.colors, planeNormals[i], planePositions[i], planeBounds[i][0], planeBounds[i][1]);
                 
                 // new List<T>() syntax makes the lists a value type instead of a reference type. This way, the dictionary chunks are not directly referencing the values, but recieving a copy of the values.
                 dictChunk.vertices = new List<Vector3>(vertices);
@@ -196,11 +200,12 @@ public class ChunkMeshGenerator : MonoBehaviour
                     dictChunk.triangles[subMeshIndex] = new List<int>(triangles[subMeshIndex]);
                 }
                 dictChunk.UVs = new List<Vector2>(UVs);
+                dictChunk.UV2s = new List<Vector2>(UV2s);
                 dictChunk.colors = new List<Color>(colors);
             }
             
             // Delete vertices inside cutout
-            (vertices, triangles, UVs, colors) = this.GetComponent<Sliceable>().DeleteMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, dictChunk.colors, planeNormals, planePositions);
+            (vertices, triangles, UVs, UV2s, colors) = this.GetComponent<Sliceable>().DeleteMesh(dictChunk.vertices, dictChunk.triangles, dictChunk.UVs, dictChunk.UV2s, dictChunk.colors, planeNormals, planePositions);
             // new List<T>() syntax makes the lists a value type instead of a reference type. This way, the dictionary chunks are not directly referencing the values, but recieving a copy of the values.
             dictChunk.vertices = new List<Vector3>(vertices);
             for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -208,6 +213,7 @@ public class ChunkMeshGenerator : MonoBehaviour
                 dictChunk.triangles[subMeshIndex] = new List<int>(triangles[subMeshIndex]);
             }
             dictChunk.UVs = new List<Vector2>(UVs);
+            dictChunk.UV2s = new List<Vector2>(UV2s);
             dictChunk.colors = new List<Color>(colors);
         }
     }
