@@ -275,8 +275,8 @@ public class Sliceable : MonoBehaviour
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
                         newPositiveUVs.Add(slicedUVIntersections[1]);
-                        newPositiveUV2s.Add(new Vector2(1.0f, 0.0f));
-                        newPositiveUV2s.Add(new Vector2(1.0f, 0.0f));
+                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -295,8 +295,8 @@ public class Sliceable : MonoBehaviour
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
                         newNegativeUVs.Add(slicedUVIntersections[1]);
-                        newNegativeUV2s.Add(new Vector2(1.0f, 0.0f));
-                        newNegativeUV2s.Add(new Vector2(1.0f, 0.0f));
+                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -310,8 +310,8 @@ public class Sliceable : MonoBehaviour
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
                         newPositiveUVs.Add(slicedUVIntersections[1]);
-                        newPositiveUV2s.Add(new Vector2(1.0f, 0.0f));
-                        newPositiveUV2s.Add(new Vector2(1.0f, 0.0f));
+                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -325,8 +325,8 @@ public class Sliceable : MonoBehaviour
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
                         newNegativeUVs.Add(slicedUVIntersections[1]);
-                        newNegativeUV2s.Add(new Vector2(1.0f, 0.0f));
-                        newNegativeUV2s.Add(new Vector2(1.0f, 0.0f));
+                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -640,7 +640,7 @@ public class Sliceable : MonoBehaviour
         {
             verticesToWeld.Add(newVertices[i]);
             UVsToWeld.Add(newUVs[i]);
-            UV2sToWeld.Add(newUVs[i]);
+            UV2sToWeld.Add(newUV2s[i]);
             colorsToWeld.Add(newColors[i]);
         }
         var (weldedVertices, weldedUVs, weldedUV2s, weldedColors, weldMap) = WeldVertices(verticesToWeld, UVsToWeld, UV2sToWeld, colorsToWeld, 0.0f);
@@ -696,11 +696,6 @@ public class Sliceable : MonoBehaviour
 
     public (List<Vector3>, List<int>[], List<Vector2>, List<Vector2>, List<Color>) DeleteMesh(List<Vector3> oldVertices, List<int>[] oldTriangles, List<Vector2> oldUVs, List<Vector2> oldUV2s, List<Color> oldColors, List<Vector3> planeNormals, List<Vector3> planePositions)
     {
-        Plane slicePlane0 = new Plane(planeNormals[0], planePositions[0]);
-        Plane slicePlane1 = new Plane(planeNormals[1], planePositions[1]);
-        Plane slicePlane2 = new Plane(planeNormals[2], planePositions[2]);
-        Plane slicePlane3 = new Plane(planeNormals[3], planePositions[3]);
-
         List<Vector3> vertices = oldVertices;
         List<int>[] triangles = new List<int>[2];
         for (int subMeshIndex = 0; subMeshIndex < 2; subMeshIndex++)
@@ -729,12 +724,14 @@ public class Sliceable : MonoBehaviour
             Vector2 UV2 = oldUV2s[i];
             Color color = oldColors[i];
 
-            bool VertSign0 = slicePlane0.GetSide(vert);
-            bool VertSign1 = slicePlane1.GetSide(vert);
-            bool VertSign2 = slicePlane2.GetSide(vert);
-            bool VertSign3 = slicePlane3.GetSide(vert);
+            float vert0Dot = Vector3.Dot(planeNormals[0], (vert - planePositions[0]));
+            float vert1Dot = Vector3.Dot(planeNormals[1], (vert - planePositions[1]));
+            float vert2Dot = Vector3.Dot(planeNormals[2], (vert - planePositions[2]));
+            float vert3Dot = Vector3.Dot(planeNormals[3], (vert - planePositions[3]));
 
-            if (VertSign0 || VertSign1 || VertSign2 || VertSign3)
+            // A "botched" together solution. It seems like perpendicular vectors sometimes give a dot product of slightly larger that 0.0f.
+            float TINY_VALUE = 0.0001f;
+            if ((vert0Dot <= TINY_VALUE) || (vert1Dot <= TINY_VALUE) || (vert2Dot <= TINY_VALUE) || (vert3Dot <= TINY_VALUE))
             {
                 // map
                 map.Add(newVertices.Count);
@@ -746,9 +743,7 @@ public class Sliceable : MonoBehaviour
             }
             else
             {
-                // map
-                map.Add(newVertices.Count);
-                // but don't add mesh data
+                map.Add(-1);
             }
         }
 
@@ -760,22 +755,25 @@ public class Sliceable : MonoBehaviour
                 int tri1 = triangles[subMeshIndex][i + 1];
                 int tri2 = triangles[subMeshIndex][i + 2];
 
-                // the average position of two midpoints of the line segments of a triangle will always be inside the triangle. That is why it is a good reference for finding whether the triangle sits within the slice planes,
-                // assuming that the triangle's edges sit within or on the slice planes.
-                Vector3 midpoint01 = (vertices[tri0] + vertices[tri1]) / 2.0f;
-                Vector3 midpoint02 = (vertices[tri0] + vertices[tri2]) / 2.0f;
-                Vector3 point_inside = (midpoint01 + midpoint02) / 2.0f;
-
-                bool VertSign0 = slicePlane0.GetSide(point_inside);
-                bool VertSign1 = slicePlane1.GetSide(point_inside);
-                bool VertSign2 = slicePlane2.GetSide(point_inside);
-                bool VertSign3 = slicePlane3.GetSide(point_inside);
-
-                if (!VertSign0 || !VertSign1 || !VertSign2 || !VertSign3)
+                if ((map[tri0] != -1) && (map[tri1] != -1) && (map[tri2] != -1))
                 {
-                    newTriangles[subMeshIndex].Add(map[tri0]);
-                    newTriangles[subMeshIndex].Add(map[tri1]);
-                    newTriangles[subMeshIndex].Add(map[tri2]);
+                    // the average position of two midpoints of the line segments of a triangle will always be inside the triangle. That is why it is a good reference for finding whether the triangle sits within the slice planes,
+                    // assuming that the triangle's edges sit within or on the slice planes.
+                    Vector3 midpoint01 = (newVertices[map[tri0]] + newVertices[map[tri1]]) / 2.0f;
+                    Vector3 midpoint02 = (newVertices[map[tri0]] + newVertices[map[tri2]]) / 2.0f;
+                    Vector3 pointInside = (midpoint01 + midpoint02) / 2.0f;
+
+                    float pointInsideDot0 = Vector3.Dot(planeNormals[0], (pointInside - planePositions[0]));
+                    float pointInsideDot1 = Vector3.Dot(planeNormals[1], (pointInside - planePositions[1]));
+                    float pointInsideDot2 = Vector3.Dot(planeNormals[2], (pointInside - planePositions[2]));
+                    float pointInsideDot3 = Vector3.Dot(planeNormals[3], (pointInside - planePositions[3]));
+
+                    if ((pointInsideDot0 <= 0.0f) || (pointInsideDot1 <= 0.0f) || (pointInsideDot2 <= 0.0f) || (pointInsideDot3 <= 0.0f))
+                    {
+                        newTriangles[subMeshIndex].Add(map[tri0]);
+                        newTriangles[subMeshIndex].Add(map[tri1]);
+                        newTriangles[subMeshIndex].Add(map[tri2]);
+                    }
                 }
             }
         }
