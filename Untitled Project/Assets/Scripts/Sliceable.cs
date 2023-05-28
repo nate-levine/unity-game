@@ -259,6 +259,26 @@ public class Sliceable : MonoBehaviour
                     float UV1_Y = Mathf.Lerp(UVs[pointIndex1].y, UVs[pointIndex2].y, UV1_LerpY);
                     slicedUVIntersections.Add(new Vector2(UV1_X, UV1_Y));
 
+                    // If an intersection point is on a line sigment with two edge points, make that intersection an edge point.
+                    List<Vector2> slicedUV2Intersections = new List<Vector2>();
+
+                    if ((UV2s[pointIndex0].x == 1.0f) && (UV2s[pointIndex2].x == 1.0f))
+                    {
+                        slicedUV2Intersections.Add(new Vector2(1.0f, 0.0f));
+                    }
+                    else
+                    {
+                        slicedUV2Intersections.Add(new Vector2(0.0f, 0.0f));
+                    }
+                    if ((UV2s[pointIndex1].x == 1.0f) && (UV2s[pointIndex2].x == 1.0f))
+                    {
+                        slicedUV2Intersections.Add(new Vector2(1.0f, 0.0f));
+                    }
+                    else
+                    {
+                        slicedUV2Intersections.Add(new Vector2(0.0f, 0.0f));
+                    }
+
 
                     if (Vert1SignSliced && Vert0SignSliced)
                     {
@@ -275,8 +295,8 @@ public class Sliceable : MonoBehaviour
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
                         newPositiveUVs.Add(slicedUVIntersections[1]);
-                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
-                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newPositiveUV2s.Add(slicedUV2Intersections[0]);
+                        newPositiveUV2s.Add(slicedUV2Intersections[1]);
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -295,8 +315,8 @@ public class Sliceable : MonoBehaviour
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
                         newNegativeUVs.Add(slicedUVIntersections[1]);
-                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
-                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newNegativeUV2s.Add(slicedUV2Intersections[0]);
+                        newNegativeUV2s.Add(slicedUV2Intersections[1]);
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -310,8 +330,8 @@ public class Sliceable : MonoBehaviour
                         newPositiveVertices.Add(slicedTriangleIntersections[1]);
                         newPositiveUVs.Add(slicedUVIntersections[0]);
                         newPositiveUVs.Add(slicedUVIntersections[1]);
-                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
-                        newPositiveUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newPositiveUV2s.Add(slicedUV2Intersections[0]);
+                        newPositiveUV2s.Add(slicedUV2Intersections[1]);
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newPositiveColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -325,8 +345,8 @@ public class Sliceable : MonoBehaviour
                         newNegativeVertices.Add(slicedTriangleIntersections[1]);
                         newNegativeUVs.Add(slicedUVIntersections[0]);
                         newNegativeUVs.Add(slicedUVIntersections[1]);
-                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
-                        newNegativeUV2s.Add(new Vector2(0.0f, 0.0f));
+                        newNegativeUV2s.Add(slicedUV2Intersections[0]);
+                        newNegativeUV2s.Add(slicedUV2Intersections[1]);
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                         newNegativeColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     }
@@ -595,7 +615,26 @@ public class Sliceable : MonoBehaviour
                     float UV1_LerpY = Mathf.InverseLerp(point1.y, point2.y, slicedTriangleIntersections[1].y);
                     float UV1_Y = Mathf.Lerp(UVs[pointIndex1].y, UVs[pointIndex2].y, UV1_LerpY);
                     slicedUVIntersections.Add(new Vector2(UV1_X, UV1_Y));
+                    
+                    // If an intersection point is on a line sigment with two edge points, make that intersection an edge point.
+                    List<Vector2> slicedUV2Intersections = new List<Vector2>();
 
+                    if ((UV2s[pointIndex0].x == 1.0f) && (UV2s[pointIndex2].x == 1.0f))
+                    {
+                        slicedUV2Intersections.Add(new Vector2(1.0f, 0.0f));
+                    }
+                    else
+                    {
+                        slicedUV2Intersections.Add(new Vector2(0.0f, 0.0f));
+                    }
+                    if ((UV2s[pointIndex1].x == 1.0f) && (UV2s[pointIndex2].x == 1.0f))
+                    {
+                        slicedUV2Intersections.Add(new Vector2(1.0f, 0.0f));
+                    }
+                    else
+                    {
+                        slicedUV2Intersections.Add(new Vector2(0.0f, 0.0f));
+                    }
 
                     // tri 1
                     newTriangles[subMeshIndex].Add(newVertices.Count + 0);
@@ -614,8 +653,8 @@ public class Sliceable : MonoBehaviour
                     newVertices.Add(slicedTriangleIntersections[1]);
                     newUVs.Add(slicedUVIntersections[0]);
                     newUVs.Add(slicedUVIntersections[1]);
-                    newUV2s.Add(new Vector2(1.0f, 0.0f));
-                    newUV2s.Add(new Vector2(1.0f, 0.0f));
+                    newUV2s.Add(slicedUV2Intersections[0]);
+                    newUV2s.Add(slicedUV2Intersections[1]);
                     newColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                     newColors.Add(new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f));
                 }
@@ -738,7 +777,18 @@ public class Sliceable : MonoBehaviour
                 // mesh data
                 newVertices.Add(vert);
                 newUVs.Add(UV);
-                newUV2s.Add(UV2);
+                if ((vert0Dot >= -TINY_VALUE) &&
+                    (vert1Dot >= -TINY_VALUE) &&
+                    (vert2Dot >= -TINY_VALUE) &&
+                    (vert3Dot >= -TINY_VALUE) ||
+                    (UV2 == new Vector2(1.0f, 0.0f)))
+                {
+                    newUV2s.Add(new Vector2(1.0f, 0.0f));
+                }
+                else
+                {
+                    newUV2s.Add(new Vector2(0.0f, 0.0f));
+                }
                 newColors.Add(color);
             }
             else
