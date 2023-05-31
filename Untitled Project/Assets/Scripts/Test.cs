@@ -2,33 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Camera))]
 public class Test : MonoBehaviour
 {
-    public ComputeShader computeShader;
-    public RenderTexture renderTexture;
+    public Camera cam;
+    public Material mat;
 
-    void Start()
+    void Update()
     {
-        renderTexture = new RenderTexture(256, 256, 24);
-        renderTexture.enableRandomWrite = true;
-        renderTexture.Create();
+        if (cam == null)
+        {
+            cam = GetComponent<Camera>();
+            cam.depthTextureMode = DepthTextureMode.DepthNormals;
+        }
 
-        computeShader.SetTexture(0, "Result", renderTexture);
-        computeShader.Dispatch(0, renderTexture.width / 8, renderTexture.height / 8, 1); 
+        if (mat == null)
+        {
+            // Assign shader to material.
+            mat = new Material(Shader.Find("Hidden/Test"));
+        }
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        if (renderTexture == null)
-        {
-            renderTexture = new RenderTexture(256, 256, 24);
-            renderTexture.enableRandomWrite = true;
-            renderTexture.Create();
-        }
-
-        computeShader.SetTexture(0, "Result", renderTexture);
-        computeShader.Dispatch(0, renderTexture.width / 8, renderTexture.height / 8, 1);
-
-        Graphics.Blit(renderTexture, destination);
+        // Render source to screen with shader.
+        Graphics.Blit(source, destination, mat);
     }
 }
