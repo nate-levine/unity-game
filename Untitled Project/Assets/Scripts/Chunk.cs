@@ -7,6 +7,7 @@ public class Chunk
     public Vector3 position;
     public List<Vector3> vertices = new List<Vector3>();
     public List<int>[] triangles = new List<int>[2];
+    public List<Vector3> normals = new List<Vector3>();
     public List<Vector2> UVs = new List<Vector2>();
     /* UV2s holds the mesh edge data.
      * If the "x" component of the Vector2 is 0.0f, the vertex is not an edge.

@@ -13,6 +13,7 @@ public class WorldMeshGenerator : MonoBehaviour
     public float scalarUV;
     public List<Vector3> vertices = new List<Vector3>();
     public List<int>[] triangles = new List<int>[2];
+    public List<Vector3> normals = new List<Vector3>();
     public List<Vector2> UVs = new List<Vector2>();
     public List<Vector2> UV2s = new List<Vector2>();
     public List<Color> colors = new List<Color>();
@@ -57,6 +58,17 @@ public class WorldMeshGenerator : MonoBehaviour
         foreach (Vector3 vertex in initialVertices)
         {
             vertices.Add(vertex);
+        }
+        List<Vector3> initialNormals = new List<Vector3>
+        {
+            new Vector3(0.0f, 0.0f, -1.0f),
+            new Vector3(0.0f, 0.0f, -1.0f),
+            new Vector3(0.0f, 0.0f, -1.0f),
+            new Vector3(0.0f, 0.0f, -1.0f),
+        };
+        foreach (Vector3 normal in initialNormals)
+        {
+            normals.Add(normal);
         }
         List<Vector2> initialUVs = new List<Vector2> {
             new Vector2(0.5f + (Mathf.Cos(theta) * 40.0f * scalarUV), 0.5f + (Mathf.Sin(theta) * 40.0f) * scalarUV),
