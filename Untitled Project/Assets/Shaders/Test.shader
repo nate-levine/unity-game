@@ -46,7 +46,7 @@ Shader "Hidden/Test"
 
                 float4 NormalDepth;
                 DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, i.uv), NormalDepth.w, NormalDepth.xyz);
-                col.rgb = 1 - NormalDepth.w;
+                col.rgb = NormalDepth.w;
                 
                 return col;
             }

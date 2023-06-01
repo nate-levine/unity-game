@@ -80,7 +80,8 @@ public class MeshOutliner : MonoBehaviour
 
         // Render the line.
         mesh.Clear();
-        mesh.vertices = meshVertices.ToArray();
-        mesh.triangles = meshIndices.ToArray();
+        // off for debug purposes rn
+        //mesh.vertices = meshVertices.ToArray();
+        //mesh.triangles = meshIndices.ToArray();
     }
 }

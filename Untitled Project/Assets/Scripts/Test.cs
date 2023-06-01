@@ -8,6 +8,12 @@ public class Test : MonoBehaviour
     public Camera cam;
     public Material mat;
 
+    public RenderTexture lightingRenderTexture;
+
+    void Start()
+    {
+        lightingRenderTexture = new RenderTexture(Screen.width, Screen.height, 8);
+    }
     void Update()
     {
         if (cam == null)
@@ -21,6 +27,8 @@ public class Test : MonoBehaviour
             // Assign shader to material.
             mat = new Material(Shader.Find("Hidden/Test"));
         }
+
+        cam.targetTexture = lightingRenderTexture;
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
