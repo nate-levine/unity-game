@@ -96,7 +96,7 @@ public class ChunkMeshGenerator : MonoBehaviour
         mesh.uv = meshUVs.ToArray();
         mesh.uv2 = meshUV2s.ToArray();
         // for debug purposes
-        //mesh.colors = meshColors.ToArray();
+        mesh.colors = meshColors.ToArray();
 
         // generate outline
         MeshOutliner.Instance.GenerateOutline(mesh);

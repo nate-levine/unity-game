@@ -36,10 +36,10 @@ public class CompositeShader : MonoBehaviour
         // blur x-axis
         Graphics.Blit(source, temporaryRenderTexture0, mat, 0);
         // blur y-axis
-        mat.SetTexture("_LightingTex", temporaryRenderTexture0);
         Graphics.Blit(source, temporaryRenderTexture1, mat, 1);
         // composite main and lighting
-        mat.SetTexture("_LightingTex", temporaryRenderTexture1);
+        mat.SetTexture("_LightingTexX", temporaryRenderTexture0);
+        mat.SetTexture("_LightingTexY", temporaryRenderTexture1);
         Graphics.Blit(source, destination, mat, 2);
     }
 }

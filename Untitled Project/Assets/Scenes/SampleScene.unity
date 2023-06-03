@@ -306,7 +306,6 @@ GameObject:
   - component: {fileID: 519420032}
   - component: {fileID: 519420031}
   - component: {fileID: 519420035}
-  - component: {fileID: 519420034}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -372,22 +371,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &519420034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 519420028}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13718f82bb72b2143a52e5f179ee50a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mainCam: {fileID: 519420031}
-  lightingCam: {fileID: 455377607}
-  mat: {fileID: 0}
-  mainRenderTexture: {fileID: 0}
 --- !u!114 &519420035
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -448,7 +431,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mesh: {fileID: 0}
-  lineThickness: 0.1
+  lineThickness: 0.05
 --- !u!23 &576850155
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -578,8 +561,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c89f855398733204084532898e95e730, type: 2}
-  - {fileID: 2100000, guid: 5f0be118dd4bd1249984518654d0f5b2, type: 2}
+  - {fileID: 2100000, guid: ff38c2f7b5f319545b57130664e8d460, type: 2}
+  - {fileID: 2100000, guid: ff38c2f7b5f319545b57130664e8d460, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
