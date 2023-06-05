@@ -1,4 +1,4 @@
-Shader "Hidden/Test"
+Shader "Hidden/DepthNormals"
 {
     Properties
     {

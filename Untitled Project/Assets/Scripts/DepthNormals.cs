@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
-public class Test : MonoBehaviour
+public class DepthNormals : MonoBehaviour
 {
     public Camera cam;
     public Material mat;
@@ -25,7 +25,7 @@ public class Test : MonoBehaviour
         if (mat == null)
         {
             // Assign shader to material.
-            mat = new Material(Shader.Find("Hidden/Test"));
+            mat = new Material(Shader.Find("Hidden/DepthNormals"));
         }
 
         cam.targetTexture = lightingRenderTexture;

@@ -11,7 +11,7 @@ public class ChunkMeshGenerator : MonoBehaviour
 {
     public static ChunkMeshGenerator Instance { get; private set; }
 
-    public Mesh mesh;
+    private Mesh mesh;
     public LineController lineController;
 
     Vector3 cutoutPosition;
@@ -97,11 +97,12 @@ public class ChunkMeshGenerator : MonoBehaviour
         mesh.uv2 = meshUV2s.ToArray();
         // for debug purposes
         mesh.colors = meshColors.ToArray();
-
-        // generate outline
-        MeshOutliner.Instance.GenerateOutline(mesh);
     }
 
+    public Mesh GetMesh()
+    {
+        return mesh;
+    }
 
     void Update()
     {
@@ -187,6 +188,7 @@ public class ChunkMeshGenerator : MonoBehaviour
                                                                 normal,
                                                                tangent,
                                                                -normal, };
+
             List<float[]> planeBounds = new List<float[]>(){ new float[2] {-normalScalar , normalScalar },
                                                              new float[2] {-tangentScalar, tangentScalar},
                                                              new float[2] {-normalScalar , normalScalar },

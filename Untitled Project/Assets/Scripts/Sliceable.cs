@@ -604,26 +604,10 @@ public class Sliceable : MonoBehaviour
                 if (uCA >= 0.0f && uCA <= 1.0f && tCA >= planeBoundsMinimum && tCA <= planeBoundsMaximum)
                     intersectsCA = true;
 
-                LINE singleLineIntersection = LINE.NONE;
-                int degenerateTriangleIntersectionPointIndex = 0;
-
                 // if there is an intersection between the plane (-0.5 to 0.5) and the line segment (0.0 to 1.0), then slice along the plane by seperating the triangle into 3 new triangles.
                 // also find the intersection if the entire plane sits inside the triangle, and therefore does not intersect it.
                 if (intersectsAB || intersectsBC || intersectsCA || sliceInside)
                 {
-                    if (intersectsAB && !(intersectsBC || intersectsCA))
-                    {
-                        singleLineIntersection = LINE.AB;
-                    }
-                    else if (intersectsBC && !(intersectsCA || intersectsAB))
-                    {
-                        singleLineIntersection = LINE.BC;
-                    }
-                    else if (intersectsCA && !(intersectsAB || intersectsBC))
-                    {
-                        singleLineIntersection = LINE.CA;
-                    }
-
                     Vector3 point0 = new Vector3();
                     Vector3 point1 = new Vector3();
                     Vector3 point2 = new Vector3();
@@ -642,15 +626,6 @@ public class Sliceable : MonoBehaviour
                         pointIndex0 = tri0;
                         pointIndex1 = tri1;
                         pointIndex2 = tri2;
-
-                        if (singleLineIntersection == LINE.BC)
-                        {
-                            degenerateTriangleIntersectionPointIndex = 0;
-                        }
-                        else if (singleLineIntersection == LINE.CA)
-                        {
-                            degenerateTriangleIntersectionPointIndex = 1;
-                        }
                     }
                     else if (Vert1Sign == Vert2Sign)
                     {
@@ -662,15 +637,6 @@ public class Sliceable : MonoBehaviour
                         pointIndex0 = tri1;
                         pointIndex1 = tri2;
                         pointIndex2 = tri0;
-
-                        if (singleLineIntersection == LINE.AB)
-                        {
-                            degenerateTriangleIntersectionPointIndex = 1;
-                        }
-                        else if (singleLineIntersection == LINE.CA)
-                        {
-                            degenerateTriangleIntersectionPointIndex = 0;
-                        }
                     }
                     else if (Vert2Sign == Vert0Sign)
                     {
@@ -682,15 +648,6 @@ public class Sliceable : MonoBehaviour
                         pointIndex0 = tri2;
                         pointIndex1 = tri0;
                         pointIndex2 = tri1;
-
-                        if (singleLineIntersection == LINE.AB)
-                        {
-                            degenerateTriangleIntersectionPointIndex = 0;
-                        }
-                        else if (singleLineIntersection == LINE.BC)
-                        {
-                            degenerateTriangleIntersectionPointIndex = 1;
-                        }
                     }
 
                     List<Vector3> slicedTriangleIntersections = FindIntersections(planeNormal, planePosition, point0, point1, point2);
@@ -743,36 +700,6 @@ public class Sliceable : MonoBehaviour
                     newTriangles[subMeshIndex].Add(newVertices.Count + 0);
                     newTriangles[subMeshIndex].Add(newVertices.Count + 1);
 
-                    // Create "degenerate" triangles. These are triangles that have no area, but close the open seams leftover from the mesh slicing,
-                    // specifically where a slice ends and there is another, unsliced triangle's, unconnected line segment.
-                    if (singleLineIntersection != LINE.NONE)
-                    {
-                        if (degenerateTriangleIntersectionPointIndex == 0)
-                        {
-                            newTriangles[subMeshIndex].Add(newVertices.Count + 0);
-                            newTriangles[subMeshIndex].Add(pointIndex0);
-                            newTriangles[subMeshIndex].Add(pointIndex2);
-                        }
-                        else if (degenerateTriangleIntersectionPointIndex == 1)
-                        {
-                            newTriangles[subMeshIndex].Add(newVertices.Count + 1);
-                            newTriangles[subMeshIndex].Add(pointIndex2);
-                            newTriangles[subMeshIndex].Add(pointIndex1);
-                        }
-                    }
-                    // If the slice is confined to within the triangle, create degenerate triangles on both sides where the slice ends.
-                    if (sliceInside)
-                    {
-                        // left side
-                        newTriangles[subMeshIndex].Add(newVertices.Count + 0);
-                        newTriangles[subMeshIndex].Add(pointIndex0);
-                        newTriangles[subMeshIndex].Add(pointIndex2);
-                        // right side
-                        newTriangles[subMeshIndex].Add(newVertices.Count + 1);
-                        newTriangles[subMeshIndex].Add(pointIndex2);
-                        newTriangles[subMeshIndex].Add(pointIndex1);
-                    }
-
                     // create vertices
                     newVertices.Add(slicedTriangleIntersections[0]);
                     newVertices.Add(slicedTriangleIntersections[1]);
@@ -787,8 +714,6 @@ public class Sliceable : MonoBehaviour
 
                 }
                 // if there is no intersection, keep the original triangle.
-                // NOTE: Because of the way this algorithm works, these triangles that fall on the line but NOT the line segment are composed of triangles mapped to both the
-                // positive and negative vertices. Therefore, they are not created properly. This needs to be fixed if the line segment is not arbitrarily large in magnitude.
                 else
                 {
                     newTriangles[subMeshIndex].Add(tri0);

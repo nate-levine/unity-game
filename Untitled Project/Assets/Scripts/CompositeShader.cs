@@ -25,7 +25,7 @@ public class CompositeShader : MonoBehaviour
         mainCam.targetTexture = mainRenderTexture;
 
         mat.SetTexture("_MainTex", mainRenderTexture);
-        mat.SetTexture("_LightingTex", lightingCam.GetComponent<Test>().lightingRenderTexture);
+        mat.SetTexture("_LightingTex", lightingCam.GetComponent<DepthNormals>().lightingRenderTexture);
     }
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
