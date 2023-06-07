@@ -1,0 +1,20 @@
+/* The shadow compute shader outputs triangles, but the graphics shader needs the number of vertices.
+   To fix this, we will multiply the vertex count by 3. To avoid transfering data back to the CPU,
+   This will be done on the GPU with a small compute shader.
+*/
+#pragma kernel Main
+
+struct IndirectArguments {
+	uint numberOfVerticesPerInstance;
+	uint numberOfInstances;
+	uint startVertexIndex;
+	uint startInstanceIndex;
+};
+RWStructuredBuffer<IndirectArguments> _IndirectArgumentsBuffer;
+
+// Multiply the number of vertices by 3 to convert from triangles.
+[numthreads(1,1,1)]
+void Main (uint3 id : SV_DispatchThreadID)
+{
+	_IndirectArgumentsBuffer[0].numberOfVerticesPerInstance *= 3;
+}

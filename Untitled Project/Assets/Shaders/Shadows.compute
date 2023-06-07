@@ -1,0 +1,85 @@
+// Each #kernel tells which function to compile for dispatch.
+#pragma kernel Main
+
+// Describes a vertex on the source mesh.
+struct ReadVertex
+{
+    float3 position; // Position.
+};
+// Describes a vertex on the destination mesh.
+struct WriteVertex
+{
+    float3 position; // Position.
+};
+// Package sets of vertices into a triangle, in a way that the GPU can store the data.
+struct WriteTriangle
+{
+    WriteVertex vertices[3]; // Vertices composing the triangle.
+    float3 normal; // Triangle normal. Each vertex in the triangle has the same normal, so we can save space by storing it only once.
+};
+
+// Compute buffers
+// To read from.
+StructuredBuffer<ReadVertex> _ReadVertices;
+StructuredBuffer<int> _ReadIndices;
+// To write into.
+AppendStructuredBuffer<WriteTriangle> _WriteTriangles;
+
+// Other variables from the C# script
+int _NumberOfReadEdges;
+float3 _LightPosition;
+float4x4 _LocalToWorldTransformMatrix;
+
+// Transform points from local object space to the world space.
+ReadVertex TransformLocalToWorldSpace(ReadVertex localVertex)
+{
+    ReadVertex worldVertex;
+    worldVertex.position = mul(_LocalToWorldTransformMatrix, float4(localVertex.position, 1)).xyz;
+    return worldVertex;
+}
+
+// [numthreads(x,y,z)] describes the number of threads that will run concurrently on each dispatch.
+[numthreads(128,1,1)]
+/* SV_DispatchThreadID is a semantic which describes the absolute thread which is being run.
+ * = (GroupID * Dimension of all thread groups) + ThreadGroupID
+ */ 
+void Main (uint3 id : SV_DispatchThreadID)
+{
+    // if there are more threads than the number of edges, stop, as there are no more edges to process.
+    if ((int)id.x > _NumberOfReadEdges)
+    {
+        return;
+    }
+
+    // Get the offset of the current triangle.
+    int segmentStart = id.x * 2;
+    // Get the vertices which make up the triangle.
+    // Transform them from local space to world space.
+    ReadVertex readWorldSpaceVertices[2];
+    readWorldSpaceVertices[0] = TransformLocalToWorldSpace(_ReadVertices[_ReadIndices[segmentStart + 0]]);
+    readWorldSpaceVertices[1] = TransformLocalToWorldSpace(_ReadVertices[_ReadIndices[segmentStart + 1]]);
+    // Convert line segment to shadow mesh based on the light position.
+    float3 shadowQuad[4];
+    shadowQuad[0] = readWorldSpaceVertices[0].position;
+    shadowQuad[1] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuad[2] = readWorldSpaceVertices[1].position;
+    shadowQuad[3] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    // Define shadow mesh normal.
+    float3 shadowNormal;
+    shadowNormal = float3(0.0, 0.0, 1.0);
+    // Write shadow mesh to a write triangle structure.
+    WriteTriangle writeTriangles[2];
+    // Triangle 0
+    writeTriangles[0].vertices[0].position = shadowQuad[0];
+    writeTriangles[0].vertices[1].position = shadowQuad[1];
+    writeTriangles[0].vertices[2].position = shadowQuad[3];
+    writeTriangles[0].normal = shadowNormal; // Normals will be facing the camera.
+    // Triangle 1
+    writeTriangles[1].vertices[0].position = shadowQuad[0];
+    writeTriangles[1].vertices[1].position = shadowQuad[3];
+    writeTriangles[1].vertices[2].position = shadowQuad[2];
+    writeTriangles[1].normal = shadowNormal; // Normals will be facing the camera.
+    // Append new triangles to the write triangle buffer.
+    _WriteTriangles.Append(writeTriangles[0]);
+    _WriteTriangles.Append(writeTriangles[1]);
+}
