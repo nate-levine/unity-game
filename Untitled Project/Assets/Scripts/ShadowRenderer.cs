@@ -41,7 +41,7 @@ public class ShadowRenderer : MonoBehaviour
     // The stride of one entry in each compute buffer.
     private const int READ_VERTEX_STRIDE = sizeof(float) * 3;
     private const int READ_INDEX_STRIDE = sizeof(int);
-    private const int WRITE_TRIANGLE_STRIDE = ((sizeof(float) * 3) * 3) + (sizeof(float) *  3); // sizeof(triangle vertices) + sizeof(normal) = (sizeof(WRITE_VERTEX_STRIDE) * 3) + (sizeof(float) * 3)
+    private const int WRITE_TRIANGLE_STRIDE = ((sizeof(float) * 3) * 4); // sizeof(triangle vertices) = (sizeof(WRITE_VERTEX_STRIDE) * 3)
     private const int ARGS_STRIDE = sizeof(int) * 4;
 
     private void OnEnable()
@@ -56,40 +56,25 @@ public class ShadowRenderer : MonoBehaviour
         // Get mesh from ChunkMeshGenerator.
         mesh = testObject.GetComponent<MeshFilter>().mesh;
         // Retrieve and store vertices.
-        Vector3[] positions = mesh.vertices;
-        ReadVertex[] vertices = new ReadVertex[positions.Length];
-        for (int i = 0; i < vertices.Length; i++)
+        ReadVertex[] vertices = new ReadVertex[mesh.triangles.Length];
+        int[] indices = new int[mesh.triangles.Length];
+        // Retrieve, calculate, and store indices.
+        for (int i = 0; i < mesh.triangles.Length; i++)
         {
             vertices[i] = new ReadVertex()
             {
-                position = positions[i]
+                position = mesh.vertices[mesh.triangles[i]]
             };
+            indices[i] = i;
         }
-        // Retrieve, calculate, and store indices.
-        List<int> indexList = new List<int>();
-        indexList.AddRange(mesh.GetTriangles(0));
-        List<int> bufferIndexList = new List<int>();
-        for (int i = 0; i < indexList.Count; i += 3)
-        {
-            // Line segment 0
-            bufferIndexList.Add(indexList[i] + 0);
-            bufferIndexList.Add(indexList[i] + 1);
-            // Line segment 1
-            bufferIndexList.Add(indexList[i] + 1);
-            bufferIndexList.Add(indexList[i] + 2);
-            // Line segment 2
-            bufferIndexList.Add(indexList[i] + 2);
-            bufferIndexList.Add(indexList[i] + 0);
-        }
-        int[] indices = bufferIndexList.ToArray();
-        int numberOfEdges = indices.Length;
+        int numberOfIndices = indices.Length;
 
         // Create the compute buffers.
         readVertexBuffer = new ComputeBuffer(vertices.Length, READ_VERTEX_STRIDE, ComputeBufferType.Structured, ComputeBufferMode.Immutable); // Initialize the buffer.
         readVertexBuffer.SetData(vertices); // Upload data to the GPU.
         readIndexBuffer = new ComputeBuffer(indices.Length, READ_INDEX_STRIDE, ComputeBufferType.Structured, ComputeBufferMode.Immutable);
         readIndexBuffer.SetData(indices);
-        writeTriangleBuffer = new ComputeBuffer(numberOfEdges * 2, WRITE_TRIANGLE_STRIDE, ComputeBufferType.Append); // Each edge will generate 2 triangles.
+        writeTriangleBuffer = new ComputeBuffer(numberOfIndices * 6, WRITE_TRIANGLE_STRIDE, ComputeBufferType.Append); // Each edge will generate 2 triangles.
         writeTriangleBuffer.SetCounterValue(0); // Set counter to 0 to be safe and make sure the buffer is cleared.
         argsBuffer = new ComputeBuffer(1, ARGS_STRIDE, ComputeBufferType.IndirectArguments);
         /* The data in arguments buffer corresponds to:
@@ -108,7 +93,7 @@ public class ShadowRenderer : MonoBehaviour
         shadowComputeShader.SetBuffer(idShadowKernel, "_ReadVertices", readVertexBuffer);
         shadowComputeShader.SetBuffer(idShadowKernel, "_ReadIndices", readIndexBuffer);
         shadowComputeShader.SetBuffer(idShadowKernel, "_WriteTriangles", writeTriangleBuffer);
-        shadowComputeShader.SetInt("_NumberOfReadEdges", numberOfEdges);
+        shadowComputeShader.SetInt("_NumberOfReadIndices", numberOfIndices);
         lightPosition = lightObject.transform.position;
         shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
         shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", testObject.transform.localToWorldMatrix);
@@ -124,7 +109,7 @@ public class ShadowRenderer : MonoBehaviour
          * so no edges at the end of the array are missed.
          */
         shadowComputeShader.GetKernelThreadGroupSizes(idShadowKernel, out uint threadGroupSize, out _, out _);
-        dispatchSize = Mathf.CeilToInt((float)numberOfEdges / threadGroupSize);
+        dispatchSize = Mathf.CeilToInt((float)numberOfIndices / threadGroupSize);
 
         // Arbitrarily large bounds to indicate to unity to not cull the written mesh under any circumstances.
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000000.0f);
@@ -168,6 +153,6 @@ public class ShadowRenderer : MonoBehaviour
         triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
 
         // Queue a draw call for the generated mesh.
-        Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, ShadowCastingMode.On, true, gameObject.layer);
+        Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, ShadowCastingMode.Off, true, gameObject.layer);
     }
 }

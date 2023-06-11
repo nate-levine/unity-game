@@ -11,6 +11,7 @@ Shader "Custom/Shadows"
 
         Pass
         {
+            Cull Off
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag

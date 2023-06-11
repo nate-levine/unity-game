@@ -15,7 +15,11 @@ struct WriteVertex
 struct WriteTriangle
 {
     WriteVertex vertices[3]; // Vertices composing the triangle.
-    float3 normal; // Triangle normal. Each vertex in the triangle has the same normal, so we can save space by storing it only once.
+    float3 normal;
+};
+struct ShadowQuad
+{
+    float3 points[4];
 };
 
 // Compute buffers
@@ -26,7 +30,7 @@ StructuredBuffer<int> _ReadIndices;
 AppendStructuredBuffer<WriteTriangle> _WriteTriangles;
 
 // Other variables from the C# script
-int _NumberOfReadEdges;
+int _NumberOfReadIndices;
 float3 _LightPosition;
 float4x4 _LocalToWorldTransformMatrix;
 
@@ -46,40 +50,73 @@ ReadVertex TransformLocalToWorldSpace(ReadVertex localVertex)
 void Main (uint3 id : SV_DispatchThreadID)
 {
     // if there are more threads than the number of edges, stop, as there are no more edges to process.
-    if ((int)id.x > _NumberOfReadEdges)
+    if ((int)id.x > _NumberOfReadIndices)
     {
         return;
     }
 
     // Get the offset of the current triangle.
-    int segmentStart = id.x * 2;
+    int triStart = id.x * 3;
     // Get the vertices which make up the triangle.
     // Transform them from local space to world space.
-    ReadVertex readWorldSpaceVertices[2];
-    readWorldSpaceVertices[0] = TransformLocalToWorldSpace(_ReadVertices[_ReadIndices[segmentStart + 0]]);
-    readWorldSpaceVertices[1] = TransformLocalToWorldSpace(_ReadVertices[_ReadIndices[segmentStart + 1]]);
+    ReadVertex readWorldSpaceVertices[3];
+    readWorldSpaceVertices[0] = TransformLocalToWorldSpace(_ReadVertices[_ReadIndices[triStart + 0]]);
+    readWorldSpaceVertices[1] = TransformLocalToWorldSpace(_ReadVertices[_ReadIndices[triStart + 1]]);
+    readWorldSpaceVertices[2] = TransformLocalToWorldSpace(_ReadVertices[_ReadIndices[triStart + 2]]);
     // Convert line segment to shadow mesh based on the light position.
-    float3 shadowQuad[4];
-    shadowQuad[0] = readWorldSpaceVertices[0].position;
-    shadowQuad[1] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
-    shadowQuad[2] = readWorldSpaceVertices[1].position;
-    shadowQuad[3] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    ShadowQuad shadowQuads[3];
+    shadowQuads[0].points[0] = readWorldSpaceVertices[0].position;
+    shadowQuads[0].points[1] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[0].points[2] = readWorldSpaceVertices[1].position;
+    shadowQuads[0].points[3] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[1].points[0] = readWorldSpaceVertices[1].position;
+    shadowQuads[1].points[1] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[1].points[2] = readWorldSpaceVertices[2].position;
+    shadowQuads[1].points[3] = readWorldSpaceVertices[2].position + ((readWorldSpaceVertices[2].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[2].points[0] = readWorldSpaceVertices[2].position;
+    shadowQuads[2].points[1] = readWorldSpaceVertices[2].position + ((readWorldSpaceVertices[2].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[2].points[2] = readWorldSpaceVertices[0].position;
+    shadowQuads[2].points[3] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
     // Define shadow mesh normal.
     float3 shadowNormal;
-    shadowNormal = float3(0.0, 0.0, 1.0);
+    shadowNormal = float3(0.0, 0.0, -1.0);
     // Write shadow mesh to a write triangle structure.
-    WriteTriangle writeTriangles[2];
+    WriteTriangle writeTriangles[6];
     // Triangle 0
-    writeTriangles[0].vertices[0].position = shadowQuad[0];
-    writeTriangles[0].vertices[1].position = shadowQuad[1];
-    writeTriangles[0].vertices[2].position = shadowQuad[3];
+    writeTriangles[0].vertices[0].position = shadowQuads[0].points[0];
+    writeTriangles[0].vertices[1].position = shadowQuads[0].points[1];
+    writeTriangles[0].vertices[2].position = shadowQuads[0].points[3];
     writeTriangles[0].normal = shadowNormal; // Normals will be facing the camera.
     // Triangle 1
-    writeTriangles[1].vertices[0].position = shadowQuad[0];
-    writeTriangles[1].vertices[1].position = shadowQuad[3];
-    writeTriangles[1].vertices[2].position = shadowQuad[2];
+    writeTriangles[1].vertices[0].position = shadowQuads[0].points[0];
+    writeTriangles[1].vertices[1].position = shadowQuads[0].points[3];
+    writeTriangles[1].vertices[2].position = shadowQuads[0].points[2];
     writeTriangles[1].normal = shadowNormal; // Normals will be facing the camera.
+    // Triangle 0
+    writeTriangles[2].vertices[0].position = shadowQuads[1].points[0];
+    writeTriangles[2].vertices[1].position = shadowQuads[1].points[1];
+    writeTriangles[2].vertices[2].position = shadowQuads[1].points[3];
+    writeTriangles[2].normal = shadowNormal; // Normals will be facing the camera.
+    // Triangle 1
+    writeTriangles[3].vertices[0].position = shadowQuads[1].points[0];
+    writeTriangles[3].vertices[1].position = shadowQuads[1].points[3];
+    writeTriangles[3].vertices[2].position = shadowQuads[1].points[2];
+    writeTriangles[3].normal = shadowNormal; // Normals will be facing the camera.
+    // Triangle 0
+    writeTriangles[4].vertices[0].position = shadowQuads[2].points[0];
+    writeTriangles[4].vertices[1].position = shadowQuads[2].points[1];
+    writeTriangles[4].vertices[2].position = shadowQuads[2].points[3];
+    writeTriangles[4].normal = shadowNormal; // Normals will be facing the camera.
+    // Triangle 1                                        
+    writeTriangles[5].vertices[0].position = shadowQuads[2].points[0];
+    writeTriangles[5].vertices[1].position = shadowQuads[2].points[3];
+    writeTriangles[5].vertices[2].position = shadowQuads[2].points[2];
+    writeTriangles[5].normal = shadowNormal; // Normals will be facing the camera.
     // Append new triangles to the write triangle buffer.
     _WriteTriangles.Append(writeTriangles[0]);
     _WriteTriangles.Append(writeTriangles[1]);
+    _WriteTriangles.Append(writeTriangles[2]);
+    _WriteTriangles.Append(writeTriangles[3]);
+    _WriteTriangles.Append(writeTriangles[4]);
+    _WriteTriangles.Append(writeTriangles[5]);
 }
