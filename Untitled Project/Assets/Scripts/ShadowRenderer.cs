@@ -6,17 +6,19 @@ using UnityEngine.Rendering;
 
 public class ShadowRenderer : MonoBehaviour
 {
-    public Material material;
-    public GameObject lightObject;
-    // A reference to the compute shader.
+    // References to the compute shaders.
     public ComputeShader shadowComputeShader;
     public ComputeShader triangleToVertexCountComputeShader;
+
+    public GameObject shadowObject;
 
     private struct ReadVertex
     {
         public Vector3 position;
     };
 
+    // Material to run the shader.
+    private Material material;
     // A state variable to keep track of whether the compute buffers have been set up.
     private bool initialized;
     // Compute buffers to read and write data to the compute shader.
@@ -37,6 +39,8 @@ public class ShadowRenderer : MonoBehaviour
     private Mesh mesh;
     // Light.
     private Vector3 lightPosition;
+    // Render texture to draw to
+    private RenderTexture renderTexture;
 
     // The stride of one entry in each compute buffer.
     private const int READ_VERTEX_STRIDE = sizeof(float) * 3;
@@ -47,6 +51,15 @@ public class ShadowRenderer : MonoBehaviour
     private void OnEnable()
     {
         initialized = false;
+        // Initialize material with proper shader.
+        material = new Material(Shader.Find("Custom/Shadows"));
+    }
+
+    private void Start()
+    {
+        // Create an instance of the compute shader for that specific light.
+        shadowComputeShader = Instantiate(shadowComputeShader);
+        triangleToVertexCountComputeShader = Instantiate(triangleToVertexCountComputeShader);
     }
 
     private void OnDisable()
@@ -62,7 +75,7 @@ public class ShadowRenderer : MonoBehaviour
         initialized = false;
     }
 
-    public void SetMesh(Mesh newMesh)
+    public void GenerateShadows()
     {
         // If initialized, call disable to clean things up.
         if (initialized)
@@ -71,21 +84,26 @@ public class ShadowRenderer : MonoBehaviour
         }
         initialized = true;
 
+        Mesh mesh = new Mesh();
+        if (shadowObject.GetComponent<ChunkMeshGenerator>())
+        {
+            mesh = shadowObject.GetComponent<ChunkMeshGenerator>().GetMesh();
+        }
 
         // Get mesh from ChunkMeshGenerator.
         List<Vector3> meshVertices = new List<Vector3>();
-        for (int i = 0; i < newMesh.vertices.Length; i++)
+        for (int i = 0; i < mesh.vertices.Length; i++)
         {
-            meshVertices.Add(newMesh.vertices[i]);
+            meshVertices.Add(mesh.vertices[i]);
         }
         List<int> meshIndices = new List<int>();
-        for (int i = 0; i < newMesh.GetTriangles(0).Length; i++)
+        for (int i = 0; i < mesh.GetTriangles(0).Length; i++)
         {
-            meshIndices.Add(newMesh.GetTriangles(0)[i]);
+            meshIndices.Add(mesh.GetTriangles(0)[i]);
         }
-        for (int i = 0; i < newMesh.GetTriangles(1).Length; i++)
+        for (int i = 0; i < mesh.GetTriangles(1).Length; i++)
         {
-            meshIndices.Add(newMesh.GetTriangles(1)[i]);
+            meshIndices.Add(mesh.GetTriangles(1)[i]);
         }
         // Retrieve and store vertices.
         ReadVertex[] vertices = new ReadVertex[meshIndices.Count];
@@ -126,9 +144,9 @@ public class ShadowRenderer : MonoBehaviour
         shadowComputeShader.SetBuffer(idShadowKernel, "_ReadIndices", readIndexBuffer);
         shadowComputeShader.SetBuffer(idShadowKernel, "_WriteTriangles", writeTriangleBuffer);
         shadowComputeShader.SetInt("_NumberOfReadIndices", numberOfIndices);
-        lightPosition = lightObject.transform.position;
+        lightPosition = gameObject.transform.position;
         shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", gameObject.transform.localToWorldMatrix);
+        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
 
         // Pass arguments buffer to the compute shader.
         triangleToVertexCountComputeShader.SetBuffer(idTriangleToVertexCountKernel, "_IndirectArgumentsBuffer", argsBuffer);
@@ -156,9 +174,9 @@ public class ShadowRenderer : MonoBehaviour
             writeTriangleBuffer.SetCounterValue(0);
 
             // Update the compute shader with the frame specific data.
-            lightPosition = lightObject.transform.position;
+            lightPosition = gameObject.transform.position;
             shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-            shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", gameObject.transform.localToWorldMatrix);
+            shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
             // Dispatch the compute shader to run on the GPU.
             shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
 
