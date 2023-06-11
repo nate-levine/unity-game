@@ -97,6 +97,8 @@ public class ChunkMeshGenerator : MonoBehaviour
         mesh.uv2 = meshUV2s.ToArray();
         // for debug purposes
         mesh.colors = meshColors.ToArray();
+
+        GetComponent<ShadowRenderer>().SetMesh(mesh);
     }
 
     public Mesh GetMesh()

@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 public class ShadowRenderer : MonoBehaviour
 {
-    public GameObject testObject;
     public Material material;
     public GameObject lightObject;
     // A reference to the compute shader.
@@ -46,24 +46,56 @@ public class ShadowRenderer : MonoBehaviour
 
     private void OnEnable()
     {
+        initialized = false;
+    }
+
+    private void OnDisable()
+    {
+        // Release the buffers, freeing up memory.
+        if (initialized)
+        {
+            readVertexBuffer.Release();
+            readIndexBuffer.Release();
+            writeTriangleBuffer.Release();
+            argsBuffer.Release();
+        }
+        initialized = false;
+    }
+
+    public void SetMesh(Mesh newMesh)
+    {
         // If initialized, call disable to clean things up.
-        if(initialized)
+        if (initialized)
         {
             OnDisable();
         }
         initialized = true;
 
+
         // Get mesh from ChunkMeshGenerator.
-        mesh = testObject.GetComponent<MeshFilter>().mesh;
+        List<Vector3> meshVertices = new List<Vector3>();
+        for (int i = 0; i < newMesh.vertices.Length; i++)
+        {
+            meshVertices.Add(newMesh.vertices[i]);
+        }
+        List<int> meshIndices = new List<int>();
+        for (int i = 0; i < newMesh.GetTriangles(0).Length; i++)
+        {
+            meshIndices.Add(newMesh.GetTriangles(0)[i]);
+        }
+        for (int i = 0; i < newMesh.GetTriangles(1).Length; i++)
+        {
+            meshIndices.Add(newMesh.GetTriangles(1)[i]);
+        }
         // Retrieve and store vertices.
-        ReadVertex[] vertices = new ReadVertex[mesh.triangles.Length];
-        int[] indices = new int[mesh.triangles.Length];
+        ReadVertex[] vertices = new ReadVertex[meshIndices.Count];
+        int[] indices = new int[meshIndices.Count];
         // Retrieve, calculate, and store indices.
-        for (int i = 0; i < mesh.triangles.Length; i++)
+        for (int i = 0; i < meshIndices.Count; i++)
         {
             vertices[i] = new ReadVertex()
             {
-                position = mesh.vertices[mesh.triangles[i]]
+                position = meshVertices[meshIndices[i]]
             };
             indices[i] = i;
         }
@@ -82,7 +114,7 @@ public class ShadowRenderer : MonoBehaviour
          * 1: Instance count.
          * 2: Start vertex location if using a graphics buffer.
          * 3: Start instance location if using a graphics buffer.
-         */ 
+         */
         argsBuffer.SetData(new int[] { 0, 1, 0, 0 });
 
         // Set variables in the computer shader.
@@ -96,7 +128,7 @@ public class ShadowRenderer : MonoBehaviour
         shadowComputeShader.SetInt("_NumberOfReadIndices", numberOfIndices);
         lightPosition = lightObject.transform.position;
         shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", testObject.transform.localToWorldMatrix);
+        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", gameObject.transform.localToWorldMatrix);
 
         // Pass arguments buffer to the compute shader.
         triangleToVertexCountComputeShader.SetBuffer(idTriangleToVertexCountKernel, "_IndirectArgumentsBuffer", argsBuffer);
@@ -115,44 +147,34 @@ public class ShadowRenderer : MonoBehaviour
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000000.0f);
     }
 
-    private void OnDisable()
-    {
-        // Release the buffers, freeing up memory.
-        if (initialized)
-        {
-            readVertexBuffer.Release();
-            readIndexBuffer.Release();
-            writeTriangleBuffer.Release();
-            argsBuffer.Release();
-        }
-        initialized = false;
-    }
-
     // LateUpdate() is called after update is called.
     private void LateUpdate()
     {
-        // Clear the compute buffer of the last frame's data.
-        writeTriangleBuffer.SetCounterValue(0);
+        if (initialized)
+        {
+            // Clear the compute buffer of the last frame's data.
+            writeTriangleBuffer.SetCounterValue(0);
 
-        // Update the compute shader with the frame specific data.
-        lightPosition = lightObject.transform.position;
-        shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", testObject.transform.localToWorldMatrix);
-        // Dispatch the compute shader to run on the GPU.
-        shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
+            // Update the compute shader with the frame specific data.
+            lightPosition = lightObject.transform.position;
+            shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
+            shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", gameObject.transform.localToWorldMatrix);
+            // Dispatch the compute shader to run on the GPU.
+            shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
 
-        /* Get the count of the draw buffer into the argurment buffer. 
-         * This sets the vertex count for the draw call.
-         */
-        ComputeBuffer.CopyCount(writeTriangleBuffer, argsBuffer, 0);
+            /* Get the count of the draw buffer into the argurment buffer. 
+             * This sets the vertex count for the draw call.
+             */
+            ComputeBuffer.CopyCount(writeTriangleBuffer, argsBuffer, 0);
 
-        /* The shadow compute shader outputs triangles, but the graphics shader needs the number of vertices.
-           To fix this, we will multiply the vertex count by 3. To avoid transfering data back to the CPU,
-           This will be done on the GPU with a small compute shader.
-        */
-        triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
+            /* The shadow compute shader outputs triangles, but the graphics shader needs the number of vertices.
+               To fix this, we will multiply the vertex count by 3. To avoid transfering data back to the CPU,
+               This will be done on the GPU with a small compute shader.
+            */
+            triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
 
-        // Queue a draw call for the generated mesh.
-        Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, ShadowCastingMode.Off, true, gameObject.layer);
+            // Queue a draw call for the generated mesh.
+            Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, ShadowCastingMode.Off, true, gameObject.layer);
+        }
     }
 }

@@ -66,17 +66,17 @@ void Main (uint3 id : SV_DispatchThreadID)
     // Convert line segment to shadow mesh based on the light position.
     ShadowQuad shadowQuads[3];
     shadowQuads[0].points[0] = readWorldSpaceVertices[0].position;
-    shadowQuads[0].points[1] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[0].points[1] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 100.0f); // 2.0f is arbitrary.
     shadowQuads[0].points[2] = readWorldSpaceVertices[1].position;
-    shadowQuads[0].points[3] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[0].points[3] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 100.0f); // 2.0f is arbitrary.
     shadowQuads[1].points[0] = readWorldSpaceVertices[1].position;
-    shadowQuads[1].points[1] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[1].points[1] = readWorldSpaceVertices[1].position + ((readWorldSpaceVertices[1].position - _LightPosition) * 100.0f); // 2.0f is arbitrary.
     shadowQuads[1].points[2] = readWorldSpaceVertices[2].position;
-    shadowQuads[1].points[3] = readWorldSpaceVertices[2].position + ((readWorldSpaceVertices[2].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[1].points[3] = readWorldSpaceVertices[2].position + ((readWorldSpaceVertices[2].position - _LightPosition) * 100.0f); // 2.0f is arbitrary.
     shadowQuads[2].points[0] = readWorldSpaceVertices[2].position;
-    shadowQuads[2].points[1] = readWorldSpaceVertices[2].position + ((readWorldSpaceVertices[2].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[2].points[1] = readWorldSpaceVertices[2].position + ((readWorldSpaceVertices[2].position - _LightPosition) * 100.0f); // 2.0f is arbitrary.
     shadowQuads[2].points[2] = readWorldSpaceVertices[0].position;
-    shadowQuads[2].points[3] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 1.0f); // 2.0f is arbitrary.
+    shadowQuads[2].points[3] = readWorldSpaceVertices[0].position + ((readWorldSpaceVertices[0].position - _LightPosition) * 100.0f); // 2.0f is arbitrary.
     // Define shadow mesh normal.
     float3 shadowNormal;
     shadowNormal = float3(0.0, 0.0, -1.0);

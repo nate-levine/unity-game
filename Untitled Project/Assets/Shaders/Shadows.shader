@@ -11,6 +11,7 @@ Shader "Custom/Shadows"
 
         Pass
         {
+            // Prevent backface culling with Cull Off.
             Cull Off
             CGPROGRAM
             #pragma vertex vert
