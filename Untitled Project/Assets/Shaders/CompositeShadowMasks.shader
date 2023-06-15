@@ -1,4 +1,4 @@
-Shader "Hidden/DepthNormals"
+Shader "Custom/CompositeShadowMasks"
 {
     Properties
     {
@@ -29,7 +29,7 @@ Shader "Hidden/DepthNormals"
                 float4 vertex : SV_POSITION;
             };
 
-            v2f vert (appdata v)
+            v2f vert(appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
@@ -38,19 +38,16 @@ Shader "Hidden/DepthNormals"
             }
 
             sampler2D _MainTex;
-            sampler2D _CameraDepthNormalsTexture;
 
-            fixed4 frag (v2f i) : SV_Target
+            fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.uv);
+                fixed4 mainCol = tex2D(_MainTex, i.uv);
 
-                float4 NormalDepth;
-                DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, i.uv), NormalDepth.w, NormalDepth.xyz);
-                col.rgb = col.rgb;
-                
+                fixed4 col = mainCol;
+
                 return col;
             }
-            ENDCG
+                ENDCG
         }
     }
 }

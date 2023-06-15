@@ -27,8 +27,10 @@ public class CompositeShader : MonoBehaviour
         mat.SetTexture("_MainTex", mainRenderTexture);
         mat.SetTexture("_LightingTex", lightingCam.GetComponent<DepthNormals>().lightingRenderTexture);
     }
+
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        /*
         // Make a temporary texture to hold the lighting information
         var temporaryRenderTexture0 = RenderTexture.GetTemporary(Screen.width, Screen.height);
         var temporaryRenderTexture1 = RenderTexture.GetTemporary(Screen.width, Screen.height);
@@ -39,7 +41,7 @@ public class CompositeShader : MonoBehaviour
         Graphics.Blit(source, temporaryRenderTexture1, mat, 1);
         // composite main and lighting
         mat.SetTexture("_LightingTexX", temporaryRenderTexture0);
-        mat.SetTexture("_LightingTexY", temporaryRenderTexture1);
-        Graphics.Blit(source, destination, mat, 2);
+        mat.SetTexture("_LightingTexY", temporaryRenderTexture1);*/
+        Graphics.Blit(source, destination, mat, 0);
     }
 }

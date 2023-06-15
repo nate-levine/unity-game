@@ -1,21 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class ShadowRenderer : MonoBehaviour
+public class ShadowMeshGenerator : MonoBehaviour
 {
-    // References to the compute shaders.
-    public ComputeShader shadowComputeShader;
-    public ComputeShader triangleToVertexCountComputeShader;
-
     public GameObject shadowObject;
 
     private struct ReadVertex
     {
         public Vector3 position;
     };
+
+    // References to the compute shaders.
+    [SerializeField] ComputeShader shadowComputeShader;
+    [SerializeField] ComputeShader triangleToVertexCountComputeShader;
 
     // Material to run the shader.
     private Material material;
@@ -37,6 +38,8 @@ public class ShadowRenderer : MonoBehaviour
     private Bounds bounds;
     // Chunk meshes.
     private Mesh mesh;
+    // Camera to render the mesh too.
+    private Camera cam;
     // Light.
     private Vector3 lightPosition;
     // Render texture to draw to
@@ -60,6 +63,17 @@ public class ShadowRenderer : MonoBehaviour
         // Create an instance of the compute shader for that specific light.
         shadowComputeShader = Instantiate(shadowComputeShader);
         triangleToVertexCountComputeShader = Instantiate(triangleToVertexCountComputeShader);
+
+        foreach (Transform child in transform)
+        {
+            if (child.gameObject.GetComponent<Camera>())
+            {
+                cam = child.gameObject.GetComponent<Camera>();
+
+                // Create a render texture for the mesh to output too.
+                renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+            }
+        }
     }
 
     private void OnDisable()
@@ -144,7 +158,7 @@ public class ShadowRenderer : MonoBehaviour
         shadowComputeShader.SetBuffer(idShadowKernel, "_ReadIndices", readIndexBuffer);
         shadowComputeShader.SetBuffer(idShadowKernel, "_WriteTriangles", writeTriangleBuffer);
         shadowComputeShader.SetInt("_NumberOfReadIndices", numberOfIndices);
-        lightPosition = gameObject.transform.position;
+        //lightPosition = gameObject.transform.position;
         shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
         shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
 
@@ -161,7 +175,7 @@ public class ShadowRenderer : MonoBehaviour
         shadowComputeShader.GetKernelThreadGroupSizes(idShadowKernel, out uint threadGroupSize, out _, out _);
         dispatchSize = Mathf.CeilToInt((float)numberOfIndices / threadGroupSize);
 
-        // Arbitrarily large bounds to indicate to unity to not cull the written mesh under any circumstances.
+        // Arbitrarily large bounds to stop Unity from culling the written mesh under any circumstances.
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000000.0f);
     }
 
@@ -170,29 +184,40 @@ public class ShadowRenderer : MonoBehaviour
     {
         if (initialized)
         {
-            // Clear the compute buffer of the last frame's data.
-            writeTriangleBuffer.SetCounterValue(0);
+            // For each light in the scene, create a shadow mask and save it to a render texture.
+            for (int i = 0; i < transform.childCount; i++)
 
-            // Update the compute shader with the frame specific data.
-            lightPosition = gameObject.transform.position;
-            shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-            shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
-            // Dispatch the compute shader to run on the GPU.
-            shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
+                if (transform.GetChild(i).GetComponent<Light>())
+                {
+                    // Clear the compute buffer of the last frame's data.
+                    writeTriangleBuffer.SetCounterValue(0);
 
-            /* Get the count of the draw buffer into the argurment buffer. 
-             * This sets the vertex count for the draw call.
-             */
-            ComputeBuffer.CopyCount(writeTriangleBuffer, argsBuffer, 0);
+                    // Update the compute shader with the specific data.
+                    lightPosition = transform.GetChild(i).transform.position;
+                    shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
+                    shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
+                    // Dispatch the compute shader to run on the GPU.
+                    shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
 
-            /* The shadow compute shader outputs triangles, but the graphics shader needs the number of vertices.
-               To fix this, we will multiply the vertex count by 3. To avoid transfering data back to the CPU,
-               This will be done on the GPU with a small compute shader.
-            */
-            triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
+                    /* Get the count of the draw buffer into the argurment buffer. 
+                     * This sets the vertex count for the draw call.
+                     */
+                    ComputeBuffer.CopyCount(writeTriangleBuffer, argsBuffer, 0);
 
-            // Queue a draw call for the generated mesh.
-            Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, ShadowCastingMode.Off, true, gameObject.layer);
+                    /* The shadow compute shader outputs triangles, but the graphics shader needs the number of vertices.
+                       To fix this, we will multiply the vertex count by 3. To avoid transfering data back to the CPU,
+                       This will be done on the GPU with a small compute shader.
+                    */
+                    triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
+
+                    // Write draw to render texture. Pass that render texture to the light game object.
+                    RenderTexture rt = RenderTexture.GetTemporary(Screen.width, Screen.height, 24);
+                    Graphics.SetRenderTarget(cam.targetTexture);
+                    Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, true, gameObject.layer);
+                    Graphics.Blit(cam.targetTexture, rt);
+                    transform.GetChild(i).GetComponent<Light>().shadowMask = rt;
+                    RenderTexture.ReleaseTemporary(rt);
+                }
         }
     }
 }

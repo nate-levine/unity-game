@@ -14,12 +14,6 @@ public class LightManager : MonoBehaviour
 
     public void GenerateShadows()
     {
-        foreach (Transform child in transform)
-        {
-            if (child.gameObject.GetComponent<ShadowRenderer>())
-            {
-                child.gameObject.GetComponent<ShadowRenderer>().GenerateShadows();
-            }
-        }
+        GetComponent<ShadowMeshGenerator>().GenerateShadows();
     }
 }
