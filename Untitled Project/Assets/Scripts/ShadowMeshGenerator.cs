@@ -158,8 +158,6 @@ public class ShadowMeshGenerator : MonoBehaviour
         shadowComputeShader.SetBuffer(idShadowKernel, "_ReadIndices", readIndexBuffer);
         shadowComputeShader.SetBuffer(idShadowKernel, "_WriteTriangles", writeTriangleBuffer);
         shadowComputeShader.SetInt("_NumberOfReadIndices", numberOfIndices);
-        //lightPosition = gameObject.transform.position;
-        shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
         shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
 
         // Pass arguments buffer to the compute shader.
@@ -196,6 +194,7 @@ public class ShadowMeshGenerator : MonoBehaviour
                     lightPosition = transform.GetChild(i).transform.position;
                     shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
                     shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
+
                     // Dispatch the compute shader to run on the GPU.
                     shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
 
@@ -211,12 +210,8 @@ public class ShadowMeshGenerator : MonoBehaviour
                     triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
 
                     // Write draw to render texture. Pass that render texture to the light game object.
-                    RenderTexture rt = RenderTexture.GetTemporary(Screen.width, Screen.height, 24);
-                    Graphics.SetRenderTarget(cam.targetTexture);
-                    Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, true, gameObject.layer);
-                    Graphics.Blit(cam.targetTexture, rt);
-                    transform.GetChild(i).GetComponent<Light>().shadowMask = rt;
-                    RenderTexture.ReleaseTemporary(rt);
+                    Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, ShadowCastingMode.Off, true, gameObject.layer);
+                    Graphics.Blit(cam.targetTexture, transform.GetChild(i).GetComponent<Light>().shadowMask);
                 }
         }
     }
