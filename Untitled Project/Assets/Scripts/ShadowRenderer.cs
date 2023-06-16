@@ -10,9 +10,7 @@ public class ShadowRenderer : MonoBehaviour
     public ComputeShader shadowComputeShader;
     public ComputeShader triangleToVertexCountComputeShader;
 
-    public GameObject shadowObject;
-
-    private struct ReadVertex
+    public struct ReadVertex
     {
         public Vector3 position;
     };
@@ -35,12 +33,12 @@ public class ShadowRenderer : MonoBehaviour
     private int dispatchSize;
     // Bounds of the generated mesh.
     private Bounds bounds;
-    // Chunk meshes.
-    private Mesh mesh;
     // Light.
     private Vector3 lightPosition;
     // Render texture to draw to
     private RenderTexture renderTexture;
+    // Local to world space transform matrix.
+    private Matrix4x4 localToWorldMatrix;
 
     // The stride of one entry in each compute buffer.
     private const int READ_VERTEX_STRIDE = sizeof(float) * 3;
@@ -75,7 +73,7 @@ public class ShadowRenderer : MonoBehaviour
         initialized = false;
     }
 
-    public void GenerateShadows()
+    public void GenerateShadows(ReadVertex[] vertices, int[] indices, int numberOfIndices, Matrix4x4 shadowObjectLocalToWorldMatrix)
     {
         // If initialized, call disable to clean things up.
         if (initialized)
@@ -83,41 +81,6 @@ public class ShadowRenderer : MonoBehaviour
             OnDisable();
         }
         initialized = true;
-
-        Mesh mesh = new Mesh();
-        if (shadowObject.GetComponent<ChunkMeshGenerator>())
-        {
-            mesh = shadowObject.GetComponent<ChunkMeshGenerator>().GetMesh();
-        }
-
-        // Get mesh from ChunkMeshGenerator.
-        List<Vector3> meshVertices = new List<Vector3>();
-        for (int i = 0; i < mesh.vertices.Length; i++)
-        {
-            meshVertices.Add(mesh.vertices[i]);
-        }
-        List<int> meshIndices = new List<int>();
-        for (int i = 0; i < mesh.GetTriangles(0).Length; i++)
-        {
-            meshIndices.Add(mesh.GetTriangles(0)[i]);
-        }
-        for (int i = 0; i < mesh.GetTriangles(1).Length; i++)
-        {
-            meshIndices.Add(mesh.GetTriangles(1)[i]);
-        }
-        // Retrieve and store vertices.
-        ReadVertex[] vertices = new ReadVertex[meshIndices.Count];
-        int[] indices = new int[meshIndices.Count];
-        // Retrieve, calculate, and store indices.
-        for (int i = 0; i < meshIndices.Count; i++)
-        {
-            vertices[i] = new ReadVertex()
-            {
-                position = meshVertices[meshIndices[i]]
-            };
-            indices[i] = i;
-        }
-        int numberOfIndices = indices.Length;
 
         // Create the compute buffers.
         readVertexBuffer = new ComputeBuffer(vertices.Length, READ_VERTEX_STRIDE, ComputeBufferType.Structured, ComputeBufferMode.Immutable); // Initialize the buffer.
@@ -146,7 +109,8 @@ public class ShadowRenderer : MonoBehaviour
         shadowComputeShader.SetInt("_NumberOfReadIndices", numberOfIndices);
         lightPosition = gameObject.transform.position;
         shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
+        localToWorldMatrix = shadowObjectLocalToWorldMatrix;
+        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", localToWorldMatrix);
 
         // Pass arguments buffer to the compute shader.
         triangleToVertexCountComputeShader.SetBuffer(idTriangleToVertexCountKernel, "_IndirectArgumentsBuffer", argsBuffer);
@@ -176,7 +140,7 @@ public class ShadowRenderer : MonoBehaviour
             // Update the compute shader with the frame specific data.
             lightPosition = gameObject.transform.position;
             shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-            shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", shadowObject.transform.localToWorldMatrix);
+            shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", localToWorldMatrix);
             // Dispatch the compute shader to run on the GPU.
             shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
 
