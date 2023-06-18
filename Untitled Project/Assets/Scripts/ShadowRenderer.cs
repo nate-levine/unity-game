@@ -10,10 +10,8 @@ public class ShadowRenderer : MonoBehaviour
     public ComputeShader shadowComputeShader;
     public ComputeShader triangleToVertexCountComputeShader;
 
-    public struct ReadVertex
-    {
-        public Vector3 position;
-    };
+    // Helps the Light Manager keep track of what shadow mask render texture belongs to which light.
+    public int shadowMaskIndex;
 
     // Material to run the shader.
     private Material material;
@@ -39,6 +37,8 @@ public class ShadowRenderer : MonoBehaviour
     private RenderTexture renderTexture;
     // Local to world space transform matrix.
     private Matrix4x4 localToWorldMatrix;
+    //
+    private Camera cam;
 
     // The stride of one entry in each compute buffer.
     private const int READ_VERTEX_STRIDE = sizeof(float) * 3;
@@ -58,6 +58,11 @@ public class ShadowRenderer : MonoBehaviour
         // Create an instance of the compute shader for that specific light.
         shadowComputeShader = Instantiate(shadowComputeShader);
         triangleToVertexCountComputeShader = Instantiate(triangleToVertexCountComputeShader);
+        if (transform.GetChild(0).GetComponent<Camera>())
+        {
+            cam = transform.GetChild(0).GetComponent<Camera>();
+            cam.targetTexture = new RenderTexture(Screen.width, Screen.height, 24);
+        }
     }
 
     private void OnDisable()
@@ -73,7 +78,7 @@ public class ShadowRenderer : MonoBehaviour
         initialized = false;
     }
 
-    public void GenerateShadows(ReadVertex[] vertices, int[] indices, int numberOfIndices, Matrix4x4 shadowObjectLocalToWorldMatrix)
+    public void GenerateShadows(Vector3[] vertices, int[] indices, int numberOfIndices, Matrix4x4 shadowObjectLocalToWorldMatrix)
     {
         // If initialized, call disable to clean things up.
         if (initialized)
@@ -155,8 +160,12 @@ public class ShadowRenderer : MonoBehaviour
             */
             triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
 
+            // Set the camera render texture as the active texture.
+            Graphics.SetRenderTarget(cam.targetTexture);
             // Queue a draw call for the generated mesh.
-            Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, null, null, ShadowCastingMode.Off, true, gameObject.layer);
+            Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, true, gameObject.layer);
+            // Save render texture of the mesh to the designated shadow mask in Light Manager.
+            Graphics.Blit(cam.targetTexture, transform.parent.GetComponent<LightManager>().shadowMasks[shadowMaskIndex]);
         }
     }
 }
