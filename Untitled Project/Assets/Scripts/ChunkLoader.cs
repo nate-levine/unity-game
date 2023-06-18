@@ -60,7 +60,7 @@ public class ChunkLoader : MonoBehaviour
         ChunkMeshGenerator.Instance.ClearMeshData();
         ChunkMeshGenerator.Instance.GenerateMesh();
         // Update shadows
-        LightManager.Instance.GenerateShadows();
+        LightManager.Instance.GenerateShadowMasks();
 
         previousChunkKeys.Clear();
         foreach (Vector3 chunkKey in currentChunkKeys)

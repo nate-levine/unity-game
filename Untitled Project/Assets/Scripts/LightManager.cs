@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering;
+using static Unity.VisualScripting.Member;
 
 public class LightManager : MonoBehaviour
 {
@@ -10,8 +13,10 @@ public class LightManager : MonoBehaviour
     public GameObject shadowObject;
 
     public List<RenderTexture> shadowMasks;
+    public RenderTexture compositeMask;
+    public RenderTexture finalCompositeMask;
 
-    private Mesh mesh;
+    private Material material;
 
     void Awake()
     {
@@ -26,13 +31,23 @@ public class LightManager : MonoBehaviour
             if (child.GetComponent<ShadowRenderer>())
             {
                 child.GetComponent<ShadowRenderer>().shadowMaskIndex = shadowMasks.Count;
-                RenderTexture rt = new RenderTexture(Screen.width, Screen.height, 24);
+                RenderTexture rt = new RenderTexture(Screen.width, Screen.height, 1);
                 shadowMasks.Add(rt);
             }
         }
+
+        compositeMask = new RenderTexture(Screen.width, Screen.height, 24);
+        compositeMask.dimension = TextureDimension.Tex2DArray;
+        compositeMask.volumeDepth = shadowMasks.Count;
+
+        // Initialize material with proper shader.
+        material = new Material(Shader.Find("Custom/CompositeShadows"));
+
+
+        finalCompositeMask = new RenderTexture(Screen.width, Screen.height, 1);
     }
 
-    public void GenerateShadows()
+    public void GenerateShadowMasks()
     {
         /* Get mesh data to pass the compute shader.
          * The reason it is done in the manager is so that the mesh data processing doesn't need to
@@ -50,5 +65,11 @@ public class LightManager : MonoBehaviour
                 child.gameObject.GetComponent<ShadowRenderer>().GenerateShadows(mesh.vertices, mesh.triangles, mesh.triangles.Length, shadowObject.transform.localToWorldMatrix);
             }
         }
+    }
+
+    private void LateUpdate()
+    {
+        material.SetInt("_Depth", compositeMask.volumeDepth);
+        Graphics.Blit(compositeMask, finalCompositeMask, material, 0, 0);
     }
 }

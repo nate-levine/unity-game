@@ -61,7 +61,7 @@ public class ShadowRenderer : MonoBehaviour
         if (transform.GetChild(0).GetComponent<Camera>())
         {
             cam = transform.GetChild(0).GetComponent<Camera>();
-            cam.targetTexture = new RenderTexture(Screen.width, Screen.height, 24);
+            cam.targetTexture = new RenderTexture(Screen.width, Screen.height, 1, RenderTextureFormat.ARGB32);
         }
     }
 
@@ -164,8 +164,9 @@ public class ShadowRenderer : MonoBehaviour
             Graphics.SetRenderTarget(cam.targetTexture);
             // Queue a draw call for the generated mesh.
             Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, true, gameObject.layer);
-            // Save render texture of the mesh to the designated shadow mask in Light Manager.
-            Graphics.Blit(cam.targetTexture, transform.parent.GetComponent<LightManager>().shadowMasks[shadowMaskIndex]);
+
+            Graphics.SetRenderTarget(transform.parent.GetComponent<LightManager>().compositeMask, 0, 0, shadowMaskIndex);
+            Graphics.Blit(cam.targetTexture, transform.parent.GetComponent<LightManager>().compositeMask, 0, shadowMaskIndex);
         }
     }
 }
