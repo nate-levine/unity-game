@@ -54,7 +54,7 @@ Shader "Custom/CompositeShadows"
                 // composite
                 for (int x = 0; x < _Depth; x++)
                 {
-                    col += UNITY_SAMPLE_TEX2DARRAY(_MainTex, float3(i.uv, x));
+                    col += fixed4(UNITY_SAMPLE_TEX2DARRAY(_MainTex, float3(i.uv, x)).xyz, 1);
                 }
 
                 return col;

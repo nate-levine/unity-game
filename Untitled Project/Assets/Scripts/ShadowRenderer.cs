@@ -165,8 +165,9 @@ public class ShadowRenderer : MonoBehaviour
             // Queue a draw call for the generated mesh.
             Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, true, gameObject.layer);
 
-            Graphics.SetRenderTarget(transform.parent.GetComponent<LightManager>().compositeMask, 0, 0, shadowMaskIndex);
-            Graphics.Blit(cam.targetTexture, transform.parent.GetComponent<LightManager>().compositeMask, 0, shadowMaskIndex);
+            // Draw render texture to shadow mask array at that index's unique depth.
+            Graphics.SetRenderTarget(LightManager.Instance.GetComponent<LightManager>().shadowMaskArray, 0, 0, shadowMaskIndex);
+            Graphics.Blit(cam.targetTexture, LightManager.Instance.GetComponent<LightManager>().shadowMaskArray, 0, shadowMaskIndex);
         }
     }
 }

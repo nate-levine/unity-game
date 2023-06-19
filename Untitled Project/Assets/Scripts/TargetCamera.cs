@@ -14,6 +14,9 @@ public class TargetCamera : MonoBehaviour
     void Update()
     {
         cam.fieldOfView = target.fieldOfView;
+        cam.orthographic = target.orthographic;
+        if (cam.orthographic)
+            cam.orthographicSize = target.orthographicSize;
         cam.transform.position = target.transform.position;
         cam.transform .rotation = target.transform.rotation;
     }

@@ -11,10 +11,11 @@ public class LightManager : MonoBehaviour
     public static LightManager Instance { get; private set; }
     // Chunk meshes.
     public GameObject shadowObject;
+    public List<GameObject> lights;
 
-    public List<RenderTexture> shadowMasks;
-    public RenderTexture compositeMask;
-    public RenderTexture finalCompositeMask;
+    public int shadowMaskCount;
+    public RenderTexture shadowMaskArray;
+    public RenderTexture shadowMaskComposite;
 
     private Material material;
 
@@ -26,25 +27,24 @@ public class LightManager : MonoBehaviour
 
     public void Start()
     {
-        foreach (Transform child in transform)
+        shadowMaskCount = 0;
+        foreach (GameObject light in lights)
         {
-            if (child.GetComponent<ShadowRenderer>())
+            if (light.GetComponent<ShadowRenderer>())
             {
-                child.GetComponent<ShadowRenderer>().shadowMaskIndex = shadowMasks.Count;
-                RenderTexture rt = new RenderTexture(Screen.width, Screen.height, 1);
-                shadowMasks.Add(rt);
+                light.GetComponent<ShadowRenderer>().shadowMaskIndex = shadowMaskCount;
+                shadowMaskCount++;
             }
         }
 
-        compositeMask = new RenderTexture(Screen.width, Screen.height, 24);
-        compositeMask.dimension = TextureDimension.Tex2DArray;
-        compositeMask.volumeDepth = shadowMasks.Count;
+        shadowMaskArray = new RenderTexture(Screen.width, Screen.height, 24);
+        shadowMaskArray.dimension = TextureDimension.Tex2DArray;
+        shadowMaskArray.volumeDepth = shadowMaskCount;
 
         // Initialize material with proper shader.
         material = new Material(Shader.Find("Custom/CompositeShadows"));
 
-
-        finalCompositeMask = new RenderTexture(Screen.width, Screen.height, 1);
+        shadowMaskComposite = new RenderTexture(Screen.width, Screen.height, 1);
     }
 
     public void GenerateShadowMasks()
@@ -58,18 +58,25 @@ public class LightManager : MonoBehaviour
         {
             mesh = shadowObject.GetComponent<ChunkMeshGenerator>().GetMesh();
         }
-        foreach (Transform child in transform)
+        foreach (GameObject light in lights)
         {
-            if (child.gameObject.GetComponent<ShadowRenderer>())
+            if (light.gameObject.GetComponent<ShadowRenderer>())
             {
-                child.gameObject.GetComponent<ShadowRenderer>().GenerateShadows(mesh.vertices, mesh.triangles, mesh.triangles.Length, shadowObject.transform.localToWorldMatrix);
+                light.gameObject.GetComponent<ShadowRenderer>().GenerateShadows(mesh.vertices, mesh.triangles, mesh.triangles.Length, shadowObject.transform.localToWorldMatrix);
             }
         }
     }
 
     private void LateUpdate()
     {
-        material.SetInt("_Depth", compositeMask.volumeDepth);
-        Graphics.Blit(compositeMask, finalCompositeMask, material, 0, 0);
+        // Composite the render texture array.
+        material.SetInt("_Depth", shadowMaskArray.volumeDepth);
+        Graphics.Blit(shadowMaskArray, shadowMaskComposite, material, 0, 0);
+        Graphics.SetRenderTarget(Camera.main.targetTexture);
+    }
+
+    private void OnRenderImage(RenderTexture source, RenderTexture destination)
+    {
+        Graphics.Blit(shadowMaskComposite, destination);
     }
 }
