@@ -1,4 +1,4 @@
-Shader "Hidden/DepthNormals"
+Shader "Custom/ApplyLighting"
 {
     Properties
     {
@@ -6,8 +6,8 @@ Shader "Hidden/DepthNormals"
     }
     SubShader
     {
-        // No culling or depth
-        Cull Off ZWrite Off ZTest Always
+        Tags { "RenderType"="Opaque" }
+        LOD 100
 
         Pass
         {
@@ -29,25 +29,26 @@ Shader "Hidden/DepthNormals"
                 float4 vertex : SV_POSITION;
             };
 
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            sampler2D _LightingTex;
+
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }
 
-            sampler2D _MainTex;
-            sampler2D _CameraDepthNormalsTexture;
-
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.uv);
+                // sample the textures
+                fixed4 MainTex = tex2D(_MainTex, i.uv);
+                fixed4 LightingTex = tex2D(_LightingTex, i.uv);
+                // composite
+                fixed4 col = fixed4((LightingTex).xyz, 1);
 
-                float4 NormalDepth;
-                DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, i.uv), NormalDepth.w, NormalDepth.xyz);
-                col.rgb = NormalDepth.w;
-                
                 return col;
             }
             ENDCG

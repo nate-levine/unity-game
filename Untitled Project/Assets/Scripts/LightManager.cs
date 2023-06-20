@@ -72,11 +72,5 @@ public class LightManager : MonoBehaviour
         // Composite the render texture array.
         material.SetInt("_Depth", shadowMaskArray.volumeDepth);
         Graphics.Blit(shadowMaskArray, shadowMaskComposite, material, 0, 0);
-        Graphics.SetRenderTarget(Camera.main.targetTexture);
-    }
-
-    private void OnRenderImage(RenderTexture source, RenderTexture destination)
-    {
-        Graphics.Blit(shadowMaskComposite, destination);
     }
 }
