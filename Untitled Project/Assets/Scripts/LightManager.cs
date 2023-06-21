@@ -9,11 +9,12 @@ using static Unity.VisualScripting.Member;
 public class LightManager : MonoBehaviour
 {
     public static LightManager Instance { get; private set; }
+
+    public List<GameObject> lights;
+    public int lightCount;
     // Chunk meshes.
     public GameObject shadowObject;
-    public List<GameObject> lights;
 
-    public int shadowMaskCount;
     public RenderTexture shadowMaskArray;
     public RenderTexture shadowMaskComposite;
 
@@ -27,19 +28,19 @@ public class LightManager : MonoBehaviour
 
     public void Start()
     {
-        shadowMaskCount = 0;
+        lightCount = 0;
         foreach (GameObject light in lights)
         {
-            if (light.GetComponent<ShadowRenderer>())
+            if (light.GetComponent<Light>())
             {
-                light.GetComponent<ShadowRenderer>().shadowMaskIndex = shadowMaskCount;
-                shadowMaskCount++;
+                light.GetComponent<Light>().lightIndex = lightCount;
+                lightCount++;
             }
         }
 
         shadowMaskArray = new RenderTexture(Screen.width, Screen.height, 24);
         shadowMaskArray.dimension = TextureDimension.Tex2DArray;
-        shadowMaskArray.volumeDepth = shadowMaskCount;
+        shadowMaskArray.volumeDepth = lightCount;
 
         // Initialize material with proper shader.
         material = new Material(Shader.Find("Custom/CompositeShadows"));

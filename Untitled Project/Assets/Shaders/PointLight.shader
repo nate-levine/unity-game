@@ -35,9 +35,11 @@ Shader "Custom/PointLight"
             // Light position in world space.
             float3 _LightPos;
             // Light radius;
-            float _LightRadius;
+            float _LightInnerRadius;
+            float _LightOuterRadius;
             // Light color
-            float3 _LightColor;
+            float3 _LightInnerColor;
+            float3 _LightOuterColor;
 
             // Positions of camera corners in world space.
             float3 _TopRight;
@@ -62,11 +64,22 @@ Shader "Custom/PointLight"
 
                 fixed4 col;
                 // If the point is within the ligh radius, set it as the light color.
-                if (dist < _LightRadius)
+                if (dist < _LightInnerRadius)
                 {
-                    // Map the distance [0, _LightRadius] -> [0, 1].
-                    float strength = (dist - _LightRadius) / (-_LightRadius);
-                    col = fixed4(_LightColor * strength, 1);
+                    col = fixed4(_LightInnerColor, 1);
+                }
+                else if (dist > _LightInnerRadius && dist < _LightOuterRadius)
+                {
+                    // Map the distance [_LightInnerRadius, _LightOuterRadius] -> [0, 1].
+                    float strength = (dist - _LightOuterRadius) / (_LightInnerRadius - _LightOuterRadius);
+                    // Inverse square law.
+                    strength = pow(strength, 2);
+                    // Lerp the colors based on strength.
+                    float r = (strength * (_LightInnerColor.r - _LightOuterColor.r)) + _LightOuterColor.r;
+                    float g = (strength * (_LightInnerColor.g - _LightOuterColor.g)) + _LightOuterColor.g;
+                    float b = (strength * (_LightInnerColor.b - _LightOuterColor.b)) + _LightOuterColor.b;
+                    // Multiply by the color.
+                    col = fixed4(float3(r, g, b) * strength, 1);
                 }
                 else
                 {

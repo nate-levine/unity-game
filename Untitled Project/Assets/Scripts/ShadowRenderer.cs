@@ -10,9 +10,6 @@ public class ShadowRenderer : MonoBehaviour
     public ComputeShader shadowComputeShader;
     public ComputeShader triangleToVertexCountComputeShader;
 
-    // Helps the Light Manager keep track of what shadow mask render texture belongs to which light.
-    public int shadowMaskIndex;
-
     // Material to run the shader.
     private Material material;
     // A state variable to keep track of whether the compute buffers have been set up.
@@ -165,9 +162,7 @@ public class ShadowRenderer : MonoBehaviour
             // Queue a draw call for the generated mesh.
             Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, true, gameObject.layer);
 
-            // Draw render texture to shadow mask array at that index's unique depth.
-            Graphics.SetRenderTarget(LightManager.Instance.GetComponent<LightManager>().shadowMaskArray, 0, 0, shadowMaskIndex);
-            Graphics.Blit(cam.targetTexture, LightManager.Instance.GetComponent<LightManager>().shadowMaskArray, 0, shadowMaskIndex);
+            Graphics.Blit(cam.targetTexture, GetComponent<Light>().shadowMaskRenderTexture);
         }
     }
 }

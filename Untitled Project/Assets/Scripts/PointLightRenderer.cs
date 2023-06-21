@@ -5,17 +5,15 @@ using UnityEngine;
 
 public class PointLightRenderer : MonoBehaviour
 {
-    public Color lightColor;
-    public float lightRadius;
-    public RenderTexture renderTexture;
+    public Color lightInnerColor;
+    public Color lightOuterColor;
+    public float lightInnerRadius;
+    public float lightOuterRadius;
 
     private Material material;
 
     private void OnEnable()
     {
-        // Initialize render texture.
-        renderTexture = new RenderTexture(Screen.width, Screen.height, 1, RenderTextureFormat.ARGB32);
-
         // Initialize material.
         material = new Material(Shader.Find("Custom/PointLight"));
     }
@@ -23,12 +21,14 @@ public class PointLightRenderer : MonoBehaviour
     private void LateUpdate()
     {
         material.SetVector("_LightPos", transform.position);
-        material.SetFloat("_LightRadius", lightRadius);
-        material.SetVector("_LightColor", new Vector3(lightColor.r, lightColor.g, lightColor.b));
+        material.SetFloat("_LightInnerRadius", lightInnerRadius);
+        material.SetFloat("_LightOuterRadius", lightOuterRadius);
+        material.SetVector("_LightInnerColor", new Vector3(lightInnerColor.r, lightInnerColor.g, lightInnerColor.b));
+        material.SetVector("_LightOuterColor", new Vector3(lightOuterColor.r, lightOuterColor.g, lightOuterColor.b));
 
         material.SetVector("_TopRight", Camera.main.ViewportToWorldPoint(new Vector3(1, 1, Camera.main.nearClipPlane)));
         material.SetVector("_BottomLeft", Camera.main.ViewportToWorldPoint(new Vector3(0, 0, Camera.main.nearClipPlane)));
 
-        Graphics.Blit(null, renderTexture, material);
+        Graphics.Blit(null, GetComponent<Light>().pointLightRenderTexture, material);
     }
 }

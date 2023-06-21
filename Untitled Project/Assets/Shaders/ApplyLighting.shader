@@ -47,7 +47,7 @@ Shader "Custom/ApplyLighting"
                 fixed4 MainTex = tex2D(_MainTex, i.uv);
                 fixed4 LightingTex = tex2D(_LightingTex, i.uv);
                 // composite
-                fixed4 col = fixed4((LightingTex).xyz, 1);
+                fixed4 col = fixed4((MainTex * LightingTex).xyz, 1);
 
                 return col;
             }
