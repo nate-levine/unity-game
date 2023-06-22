@@ -36,7 +36,7 @@ public class Light : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
+    private void Update()
     {
         material.SetTexture("_LightTex", pointLightRenderTexture);
         material.SetTexture("_ShadowTex", shadowMaskRenderTexture);

@@ -68,7 +68,7 @@ public class LightManager : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
+    private void Update()
     {
         // Composite the render texture array.
         material.SetInt("_Depth", shadowMaskArray.volumeDepth);

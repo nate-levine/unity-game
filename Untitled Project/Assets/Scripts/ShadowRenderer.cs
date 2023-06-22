@@ -132,7 +132,7 @@ public class ShadowRenderer : MonoBehaviour
     }
 
     // LateUpdate() is called after update is called.
-    private void LateUpdate()
+    private void Update()
     {
         if (initialized)
         {
