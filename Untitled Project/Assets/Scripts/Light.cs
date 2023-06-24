@@ -32,14 +32,19 @@ public class Light : MonoBehaviour
         if (transform.GetChild(0).GetComponent<Camera>())
         {
             cam = transform.GetChild(0).GetComponent<Camera>();
-            cam.targetTexture = new RenderTexture(Screen.width, Screen.height, 1, RenderTextureFormat.ARGB32);
+            cam.targetTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
         }
     }
 
-    private void Update()
+    public void DrawLight()
     {
+        Debug.Log("Light: " + Time.time);
         material.SetTexture("_LightTex", pointLightRenderTexture);
-        material.SetTexture("_ShadowTex", shadowMaskRenderTexture);
+        if (GetComponent<ShadowRenderer>())
+        {
+            material.EnableKeyword("SHADOW_MASK_IS_SET");
+            material.SetTexture("_ShadowTex", shadowMaskRenderTexture);
+        }
 
         Graphics.Blit(null, lightShadowCompositeRenderTexture, material);
 

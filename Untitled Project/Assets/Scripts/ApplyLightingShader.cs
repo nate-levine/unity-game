@@ -5,22 +5,28 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class ApplyLightingShader : MonoBehaviour
 {
-    public Camera mainCam;
     public Material mat;
 
-    void Update()
+    private void Start()
     {
         if (mat == null)
         {
             // Assign shader to material.
             mat = new Material(Shader.Find("Custom/ApplyLighting"));
         }
+    }
 
-        mat.SetTexture("_MainTex", GetComponent<Camera>().targetTexture);
+    public void ApplyLighting()
+    {
+        Debug.Log("ApplyLightingShader: " + Time.time);
         mat.SetTexture("_LightingTex", LightManager.Instance.GetComponent<LightManager>().shadowMaskComposite);
     }
-    private void OnRenderImage(RenderTexture source, RenderTexture destination)
+
+    public void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        LightManager.Instance.GetComponent<LightManager>().Lighting();
+
+        Debug.Log("RenderImage: " + Time.time);
         Graphics.Blit(source, destination, mat);
     }
 }

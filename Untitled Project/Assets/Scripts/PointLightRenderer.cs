@@ -18,8 +18,9 @@ public class PointLightRenderer : MonoBehaviour
         material = new Material(Shader.Find("Custom/PointLight"));
     }
 
-    private void Update()
+    public void DrawPointLight()
     {
+        Debug.Log("PointLightRenderer: " + Time.time);
         material.SetVector("_LightPos", transform.position);
         material.SetFloat("_LightInnerRadius", lightInnerRadius);
         material.SetFloat("_LightOuterRadius", lightOuterRadius);

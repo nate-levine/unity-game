@@ -37,6 +37,8 @@ public class ShadowRenderer : MonoBehaviour
     //
     private Camera cam;
 
+    private Vector3 prev;
+
     // The stride of one entry in each compute buffer.
     private const int READ_VERTEX_STRIDE = sizeof(float) * 3;
     private const int READ_INDEX_STRIDE = sizeof(int);
@@ -132,7 +134,7 @@ public class ShadowRenderer : MonoBehaviour
     }
 
     // LateUpdate() is called after update is called.
-    private void Update()
+    public void DrawShadow()
     {
         if (initialized)
         {
@@ -157,12 +159,12 @@ public class ShadowRenderer : MonoBehaviour
             */
             triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
 
-            // Set the camera render texture as the active texture.
-            Graphics.SetRenderTarget(cam.targetTexture);
+            Debug.Log("ShadowRenderer: " + Time.time);
             // Queue a draw call for the generated mesh.
-            Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, true, gameObject.layer);
-
+            Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, false, gameObject.layer);
             Graphics.Blit(cam.targetTexture, GetComponent<Light>().shadowMaskRenderTexture);
+
+            prev = Camera.main.transform.position;
         }
     }
 }

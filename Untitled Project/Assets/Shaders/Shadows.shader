@@ -7,23 +7,14 @@ Shader "Custom/Shadows"
     SubShader
     {
         Tags{ "RenderType" = "Transparent" "Queue" = "Transparent" }
-        LOD 100
+        LOD 0
 
         Pass
         {
             // Prevent backface culling with Cull Off.
             Cull Off
-            // Define blend mode of the old and new pixel colors.
-            Blend SrcAlpha OneMinusSrcAlpha
             // Don't disable any objects behind the material, because those background objects may not be fully occluded.
             ZWrite Off
-            // Check for transparency overlap. If there is, don't add the alphas.
-            Stencil {
-                Ref 0
-                Comp Equal
-                Pass IncrSat
-                Fail IncrSat
-            }
 
             CGPROGRAM
             #pragma vertex vert

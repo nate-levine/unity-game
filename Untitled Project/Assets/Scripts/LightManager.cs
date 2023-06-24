@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using static Unity.VisualScripting.Member;
@@ -38,14 +37,14 @@ public class LightManager : MonoBehaviour
             }
         }
 
-        shadowMaskArray = new RenderTexture(Screen.width, Screen.height, 24);
+        shadowMaskArray = new RenderTexture(Screen.width, Screen.height, 0);
         shadowMaskArray.dimension = TextureDimension.Tex2DArray;
         shadowMaskArray.volumeDepth = lightCount;
 
         // Initialize material with proper shader.
         material = new Material(Shader.Find("Custom/CompositeShadows"));
 
-        shadowMaskComposite = new RenderTexture(Screen.width, Screen.height, 1);
+        shadowMaskComposite = new RenderTexture(Screen.width, Screen.height, 0);
     }
 
     public void GenerateShadowMasks()
@@ -68,10 +67,26 @@ public class LightManager : MonoBehaviour
         }
     }
 
-    private void Update()
+    public void Lighting()
     {
+        Debug.Log("LightManager: " + Time.time);
+        //
+        foreach (GameObject light in lights)
+        {
+            if (light.gameObject.GetComponent<Light>())
+            {
+                if (light.gameObject.GetComponent<ShadowRenderer>())
+                {
+                    light.gameObject.GetComponent<ShadowRenderer>().DrawShadow();
+                }
+                light.gameObject.GetComponent<PointLightRenderer>().DrawPointLight();
+                light.gameObject.GetComponent<Light>().DrawLight();
+            }
+        }
         // Composite the render texture array.
         material.SetInt("_Depth", shadowMaskArray.volumeDepth);
         Graphics.Blit(shadowMaskArray, shadowMaskComposite, material, 0, 0);
+
+        Camera.main.GetComponent<ApplyLightingShader>().ApplyLighting();
     }
 }

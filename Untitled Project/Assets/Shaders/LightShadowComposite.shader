@@ -33,6 +33,7 @@ Shader "Custom/LightShadowComposite"
             float4 _MainTex_ST;
 
             sampler2D _LightTex;
+            #define SHADOW_MASK_IS_SET
             sampler2D _ShadowTex;
 
             v2f vert (appdata v)
@@ -49,7 +50,11 @@ Shader "Custom/LightShadowComposite"
 
                 // Sample the texture.
                 fixed4 LightTex = tex2D(_LightTex, i.uv);
-                fixed4 ShadowTex = tex2D(_ShadowTex, i.uv);
+                #if defined(SHADOW_MASK_IS_SET)
+                    fixed4 ShadowTex = tex2D(_ShadowTex, i.uv);
+                #else
+                    fixed4 ShadowTex = fixed4(1, 1, 1, 0);
+                #endif
 
                 // Composite.
                 col = fixed4((LightTex * ShadowTex).xyz, 1);
