@@ -28,7 +28,7 @@ public class CustomLight : MonoBehaviour
     {
         if (LightManager.Instance != null)
         {
-            LightManager.Instance.lights.Add(gameObject);
+            LightManager.Instance.AddLight(gameObject);
         }
 
         pointLightRenderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);

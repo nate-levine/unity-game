@@ -28,18 +28,6 @@ public class LightManager : MonoBehaviour
 
     public void Start()
     {
-        for (int i = 0; i < lights.Count; i++)
-        {
-            if (lights[i].GetComponent<CustomLight>())
-            {
-                lights[i].GetComponent<CustomLight>().lightIndex = i;
-            }
-        }
-
-        shadowMaskArray = new RenderTexture(Screen.width, Screen.height, 0);
-        shadowMaskArray.dimension = TextureDimension.Tex2DArray;
-        shadowMaskArray.volumeDepth = lights.Count;
-
         // Initialize material with proper shader.
         material = new Material(Shader.Find("Custom/CompositeShadows"));
 
@@ -68,12 +56,18 @@ public class LightManager : MonoBehaviour
 
     public void Lighting()
     {
+        // Set composite light render texture depth as the number of lights, one layer for each light.
+        shadowMaskArray = new RenderTexture(Screen.width, Screen.height, 0);
+        shadowMaskArray.dimension = TextureDimension.Tex2DArray;
+        shadowMaskArray.volumeDepth = lights.Count;
+
         foreach (GameObject light in lights)
         {
             if (light.gameObject.GetComponent<CustomLight>())
             {
                 if (light.gameObject.GetComponent<ShadowRenderer>())
                 {
+
                     light.gameObject.GetComponent<ShadowRenderer>().DrawShadow();
                 }
                 light.gameObject.GetComponent<PointLightRenderer>().DrawPointLight();
@@ -85,5 +79,17 @@ public class LightManager : MonoBehaviour
         Graphics.Blit(shadowMaskArray, shadowMaskComposite, material, 0, 0);
 
         Camera.main.GetComponent<ApplyLightingShader>().ApplyLighting();
+
+        shadowMaskArray.Release();
+    }
+
+    public void AddLight(GameObject light)
+    {
+        if (light.GetComponent<CustomLight>())
+        {
+            light.GetComponent<CustomLight>().lightIndex = lights.Count;
+            lights.Add(light);
+
+        }
     }
 }
