@@ -18,7 +18,6 @@ public class ApplyLightingShader : MonoBehaviour
 
     public void ApplyLighting()
     {
-        Debug.Log("ApplyLightingShader: " + Time.time);
         mat.SetTexture("_LightingTex", LightManager.Instance.GetComponent<LightManager>().shadowMaskComposite);
     }
 
@@ -26,7 +25,6 @@ public class ApplyLightingShader : MonoBehaviour
     {
         LightManager.Instance.GetComponent<LightManager>().Lighting();
 
-        Debug.Log("RenderImage: " + Time.time);
         Graphics.Blit(source, destination, mat);
     }
 }

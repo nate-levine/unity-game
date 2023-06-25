@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using static Unity.VisualScripting.Member;
 
@@ -10,8 +12,7 @@ public class LightManager : MonoBehaviour
     public static LightManager Instance { get; private set; }
 
     public List<GameObject> lights;
-    public int lightCount;
-    // Chunk meshes.
+    // World mesh.
     public GameObject shadowObject;
 
     public RenderTexture shadowMaskArray;
@@ -27,19 +28,17 @@ public class LightManager : MonoBehaviour
 
     public void Start()
     {
-        lightCount = 0;
-        foreach (GameObject light in lights)
+        for (int i = 0; i < lights.Count; i++)
         {
-            if (light.GetComponent<Light>())
+            if (lights[i].GetComponent<CustomLight>())
             {
-                light.GetComponent<Light>().lightIndex = lightCount;
-                lightCount++;
+                lights[i].GetComponent<CustomLight>().lightIndex = i;
             }
         }
 
         shadowMaskArray = new RenderTexture(Screen.width, Screen.height, 0);
         shadowMaskArray.dimension = TextureDimension.Tex2DArray;
-        shadowMaskArray.volumeDepth = lightCount;
+        shadowMaskArray.volumeDepth = lights.Count;
 
         // Initialize material with proper shader.
         material = new Material(Shader.Find("Custom/CompositeShadows"));
@@ -52,7 +51,7 @@ public class LightManager : MonoBehaviour
         /* Get mesh data to pass the compute shader.
          * The reason it is done in the manager is so that the mesh data processing doesn't need to
          * be done per light. This increases the load time drastically, causing a ton of lag.
-         */ 
+         */
         Mesh mesh = new Mesh();
         if (shadowObject.GetComponent<ChunkMeshGenerator>())
         {
@@ -69,18 +68,16 @@ public class LightManager : MonoBehaviour
 
     public void Lighting()
     {
-        Debug.Log("LightManager: " + Time.time);
-        //
         foreach (GameObject light in lights)
         {
-            if (light.gameObject.GetComponent<Light>())
+            if (light.gameObject.GetComponent<CustomLight>())
             {
                 if (light.gameObject.GetComponent<ShadowRenderer>())
                 {
                     light.gameObject.GetComponent<ShadowRenderer>().DrawShadow();
                 }
                 light.gameObject.GetComponent<PointLightRenderer>().DrawPointLight();
-                light.gameObject.GetComponent<Light>().DrawLight();
+                light.gameObject.GetComponent<CustomLight>().DrawLight();
             }
         }
         // Composite the render texture array.

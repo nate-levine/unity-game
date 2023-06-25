@@ -13,7 +13,7 @@ public class ShadowRenderer : MonoBehaviour
     // Material to run the shader.
     private Material material;
     // A state variable to keep track of whether the compute buffers have been set up.
-    private bool initialized;
+    public bool initialized;
     // Compute buffers to read and write data to the compute shader.
     private ComputeBuffer readVertexBuffer;
     private ComputeBuffer readIndexBuffer;
@@ -36,8 +36,6 @@ public class ShadowRenderer : MonoBehaviour
     private Matrix4x4 localToWorldMatrix;
     //
     private Camera cam;
-
-    private Vector3 prev;
 
     // The stride of one entry in each compute buffer.
     private const int READ_VERTEX_STRIDE = sizeof(float) * 3;
@@ -84,7 +82,6 @@ public class ShadowRenderer : MonoBehaviour
         {
             OnDisable();
         }
-        initialized = true;
 
         // Create the compute buffers.
         readVertexBuffer = new ComputeBuffer(vertices.Length, READ_VERTEX_STRIDE, ComputeBufferType.Structured, ComputeBufferMode.Immutable); // Initialize the buffer.
@@ -131,11 +128,9 @@ public class ShadowRenderer : MonoBehaviour
 
         // Arbitrarily large bounds to indicate to unity to not cull the written mesh under any circumstances.
         bounds = new Bounds(Vector3.zero, Vector3.one * 1000000.0f);
-    }
 
-    // LateUpdate() is called after update is called.
-    public void DrawShadow()
-    {
+        initialized = true;
+
         if (initialized)
         {
             // Clear the compute buffer of the last frame's data.
@@ -158,13 +153,18 @@ public class ShadowRenderer : MonoBehaviour
                This will be done on the GPU with a small compute shader.
             */
             triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
+        }
+    }
 
-            Debug.Log("ShadowRenderer: " + Time.time);
+    // LateUpdate() is called after update is called.
+    public void DrawShadow()
+    {
+        if (initialized)
+        {
             // Queue a draw call for the generated mesh.
             Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Triangles, argsBuffer, 0, cam, null, ShadowCastingMode.Off, false, gameObject.layer);
-            Graphics.Blit(cam.targetTexture, GetComponent<Light>().shadowMaskRenderTexture);
-
-            prev = Camera.main.transform.position;
+            // Draw camera view to render texture.
+            Graphics.Blit(cam.targetTexture, GetComponent<CustomLight>().shadowMaskRenderTexture);
         }
     }
 }

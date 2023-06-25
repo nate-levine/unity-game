@@ -7,7 +7,7 @@ Shader "Custom/Shadows"
     SubShader
     {
         Tags{ "RenderType" = "Transparent" "Queue" = "Transparent" }
-        LOD 0
+        LOD 100
 
         Pass
         {
