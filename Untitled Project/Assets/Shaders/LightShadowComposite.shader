@@ -57,7 +57,7 @@ Shader "Custom/LightShadowComposite"
                 #endif
 
                 // Composite.
-                col = fixed4((LightTex * ShadowTex).xyz, 1);
+                col = fixed4((LightTex * ShadowTex).xyz + (LightTex * 0.5).xyz , 1);
 
                 return col;
             }

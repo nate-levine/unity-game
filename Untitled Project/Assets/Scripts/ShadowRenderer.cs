@@ -10,6 +10,8 @@ public class ShadowRenderer : MonoBehaviour
     public ComputeShader shadowComputeShader;
     public ComputeShader triangleToVertexCountComputeShader;
 
+    public bool isStatic;
+
     // Material to run the shader.
     private Material material;
     // A state variable to keep track of whether the compute buffers have been set up.
@@ -131,30 +133,10 @@ public class ShadowRenderer : MonoBehaviour
 
         initialized = true;
 
-        if (initialized)
+        if (initialized && isStatic)
         {
-            // Clear the compute buffer of the last frame's data.
-            writeTriangleBuffer.SetCounterValue(0);
-
-            // Update the compute shader with the frame specific data.
-            lightPosition = gameObject.transform.position;
-            shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
-            shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", localToWorldMatrix);
-            // Dispatch the compute shader to run on the GPU.
-            shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
-
-            /* Get the count of the draw buffer into the argurment buffer. 
-             * This sets the vertex count for the draw call.
-             */
-            ComputeBuffer.CopyCount(writeTriangleBuffer, argsBuffer, 0);
-
-            /* The shadow compute shader outputs triangles, but the graphics shader needs the number of vertices.
-               To fix this, we will multiply the vertex count by 3. To avoid transfering data back to the CPU,
-               This will be done on the GPU with a small compute shader.
-            */
-            triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
+            Dispatch();
         }
-
         /* On the frame where the shadow mesh is generated, the DrawShadow function cannot be called. To compensate for this, call DrawShadow() at the end of GenerateShadows() to not skip a frame,
          * causing a temporary flicker out when the shadow mesh in generated.
          */
@@ -164,6 +146,10 @@ public class ShadowRenderer : MonoBehaviour
     // LateUpdate() is called after update is called.
     public void DrawShadow()
     {
+        if (initialized && !isStatic)
+        {
+            Dispatch();
+        }
         if (initialized)
         {
             // Queue a draw call for the generated mesh.
@@ -171,5 +157,29 @@ public class ShadowRenderer : MonoBehaviour
             // Draw camera view to render texture.
             Graphics.Blit(cam.targetTexture, GetComponent<CustomLight>().shadowMaskRenderTexture);
         }
+    }
+
+    private void Dispatch()
+    {
+        // Clear the compute buffer of the last frame's data.
+        writeTriangleBuffer.SetCounterValue(0);
+
+        // Update the compute shader with the frame specific data.
+        lightPosition = gameObject.transform.position;
+        shadowComputeShader.SetFloats("_LightPosition", new float[] { lightPosition.x, lightPosition.y, lightPosition.z });
+        shadowComputeShader.SetMatrix("_LocalToWorldTransformMatrix", localToWorldMatrix);
+        // Dispatch the compute shader to run on the GPU.
+        shadowComputeShader.Dispatch(idShadowKernel, dispatchSize, 1, 1);
+
+        /* Get the count of the draw buffer into the argurment buffer. 
+         * This sets the vertex count for the draw call.
+         */
+        ComputeBuffer.CopyCount(writeTriangleBuffer, argsBuffer, 0);
+
+        /* The shadow compute shader outputs triangles, but the graphics shader needs the number of vertices.
+           To fix this, we will multiply the vertex count by 3. To avoid transfering data back to the CPU,
+           This will be done on the GPU with a small compute shader.
+        */
+        triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
     }
 }

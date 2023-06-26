@@ -379,6 +379,7 @@ GameObject:
   - component: {fileID: 324660810}
   - component: {fileID: 324660813}
   - component: {fileID: 324660812}
+  - component: {fileID: 324660814}
   m_Layer: 7
   m_Name: Head Light
   m_TagString: Untagged
@@ -414,10 +415,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82ad920a7e9e43245938041b026059eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightInnerColor: {r: 0.41509432, g: 0.39504448, b: 0.31484511, a: 0}
-  lightOuterColor: {r: 1, g: 0.95531076, b: 0.7396226, a: 0}
+  lightInnerColor: {r: 0.4528302, g: 0.4288804, b: 0.33492345, a: 0}
+  lightOuterColor: {r: 0.4433962, g: 0.42624596, b: 0.34049484, a: 0}
   lightInnerRadius: 1
-  lightOuterRadius: 10
+  lightOuterRadius: 3
 --- !u!114 &324660813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -434,6 +435,22 @@ MonoBehaviour:
   pointLightRenderTexture: {fileID: 0}
   shadowMaskRenderTexture: {fileID: 0}
   lightShadowCompositeRenderTexture: {fileID: 0}
+--- !u!114 &324660814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 324660809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a41422b03558fdb44aec31a6e6c9a44b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowComputeShader: {fileID: 7200000, guid: 93df3b7cb66520043a9bc95e1edbaf88, type: 3}
+  triangleToVertexCountComputeShader: {fileID: 7200000, guid: 93716f5f7b361f049a633055d1e318bb, type: 3}
+  isStatic: 0
+  initialized: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -917,6 +934,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shadowComputeShader: {fileID: 7200000, guid: 93df3b7cb66520043a9bc95e1edbaf88, type: 3}
   triangleToVertexCountComputeShader: {fileID: 7200000, guid: 93716f5f7b361f049a633055d1e318bb, type: 3}
+  isStatic: 1
   initialized: 0
 --- !u!114 &800940205
 MonoBehaviour:
@@ -999,6 +1017,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shadowComputeShader: {fileID: 7200000, guid: 93df3b7cb66520043a9bc95e1edbaf88, type: 3}
   triangleToVertexCountComputeShader: {fileID: 7200000, guid: 93716f5f7b361f049a633055d1e318bb, type: 3}
+  isStatic: 1
   initialized: 0
 --- !u!114 &903927752
 MonoBehaviour:
@@ -1129,6 +1148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shadowComputeShader: {fileID: 7200000, guid: 93df3b7cb66520043a9bc95e1edbaf88, type: 3}
   triangleToVertexCountComputeShader: {fileID: 7200000, guid: 93716f5f7b361f049a633055d1e318bb, type: 3}
+  isStatic: 1
   initialized: 0
 --- !u!114 &931706237
 MonoBehaviour:
@@ -1622,6 +1642,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shadowComputeShader: {fileID: 7200000, guid: 93df3b7cb66520043a9bc95e1edbaf88, type: 3}
   triangleToVertexCountComputeShader: {fileID: 7200000, guid: 93716f5f7b361f049a633055d1e318bb, type: 3}
+  isStatic: 1
   initialized: 0
 --- !u!114 &1426293294
 MonoBehaviour:
@@ -1966,6 +1987,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shadowComputeShader: {fileID: 7200000, guid: 93df3b7cb66520043a9bc95e1edbaf88, type: 3}
   triangleToVertexCountComputeShader: {fileID: 7200000, guid: 93716f5f7b361f049a633055d1e318bb, type: 3}
+  isStatic: 1
   initialized: 0
 --- !u!114 &1747754857
 MonoBehaviour:
