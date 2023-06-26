@@ -154,6 +154,11 @@ public class ShadowRenderer : MonoBehaviour
             */
             triangleToVertexCountComputeShader.Dispatch(idTriangleToVertexCountKernel, 1, 1, 1);
         }
+
+        /* On the frame where the shadow mesh is generated, the DrawShadow function cannot be called. To compensate for this, call DrawShadow() at the end of GenerateShadows() to not skip a frame,
+         * causing a temporary flicker out when the shadow mesh in generated.
+         */
+        DrawShadow();
     }
 
     // LateUpdate() is called after update is called.

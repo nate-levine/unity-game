@@ -17,7 +17,7 @@ Shader "Custom/GaussianBlur"
 
             #include "UnityCG.cginc"
 
-            #define stdDev 128
+            #define stdDev 4
 
             struct appdata
             {
@@ -49,7 +49,7 @@ Shader "Custom/GaussianBlur"
                 fixed4 col = fixed4(0, 0, 0, 1);
                 float sum = 0;
 
-                for (int x = -8; x < 8; x++)
+                for (int x = -4; x < 4; x++)
                 {
                     float xPos = (float)x + 0.5;
 
@@ -83,7 +83,7 @@ Shader "Custom/GaussianBlur"
 
             #include "UnityCG.cginc"
 
-            #define stdDev 128
+            #define stdDev 4
 
             struct appdata
             {
@@ -115,7 +115,7 @@ Shader "Custom/GaussianBlur"
                 fixed4 col = fixed4(0, 0, 0, 1);
                 float sum = 0;
 
-                for (int y = -8; y < 8; y++)
+                for (int y = -4; y < 4; y++)
                 {
                     float yPos = (float)y + 0.5;
 

@@ -417,7 +417,7 @@ MonoBehaviour:
   lightInnerColor: {r: 0.41509432, g: 0.39504448, b: 0.31484511, a: 0}
   lightOuterColor: {r: 1, g: 0.95531076, b: 0.7396226, a: 0}
   lightInnerRadius: 1
-  lightOuterRadius: 5
+  lightOuterRadius: 10
 --- !u!114 &324660813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,7 +433,6 @@ MonoBehaviour:
   lightIndex: 0
   pointLightRenderTexture: {fileID: 0}
   shadowMaskRenderTexture: {fileID: 0}
-  blurredShadowMaskRenderTexture: {fileID: 0}
   lightShadowCompositeRenderTexture: {fileID: 0}
 --- !u!1 &519420028
 GameObject:
@@ -934,7 +933,7 @@ MonoBehaviour:
   lightInnerColor: {r: 0.5019608, g: 0.38426417, b: 0, a: 0}
   lightOuterColor: {r: 1, g: 0.6825073, b: 0, a: 0}
   lightInnerRadius: 0
-  lightOuterRadius: 10
+  lightOuterRadius: 8
 --- !u!114 &800940206
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -950,7 +949,6 @@ MonoBehaviour:
   lightIndex: 0
   pointLightRenderTexture: {fileID: 0}
   shadowMaskRenderTexture: {fileID: 0}
-  blurredShadowMaskRenderTexture: {fileID: 0}
   lightShadowCompositeRenderTexture: {fileID: 0}
 --- !u!4 &800940207
 Transform:
@@ -1017,7 +1015,7 @@ MonoBehaviour:
   lightInnerColor: {r: 0, g: 0.3313725, b: 0.5, a: 0}
   lightOuterColor: {r: 0, g: 0.6609516, b: 1, a: 0}
   lightInnerRadius: 0
-  lightOuterRadius: 10
+  lightOuterRadius: 8
 --- !u!114 &903927753
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1033,7 +1031,6 @@ MonoBehaviour:
   lightIndex: 0
   pointLightRenderTexture: {fileID: 0}
   shadowMaskRenderTexture: {fileID: 0}
-  blurredShadowMaskRenderTexture: {fileID: 0}
   lightShadowCompositeRenderTexture: {fileID: 0}
 --- !u!4 &903927754
 Transform:
@@ -1098,6 +1095,88 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &931706235
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 931706239}
+  - component: {fileID: 931706238}
+  - component: {fileID: 931706237}
+  - component: {fileID: 931706236}
+  m_Layer: 7
+  m_Name: Point Light (6)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &931706236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 931706235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a41422b03558fdb44aec31a6e6c9a44b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowComputeShader: {fileID: 7200000, guid: 93df3b7cb66520043a9bc95e1edbaf88, type: 3}
+  triangleToVertexCountComputeShader: {fileID: 7200000, guid: 93716f5f7b361f049a633055d1e318bb, type: 3}
+  initialized: 0
+--- !u!114 &931706237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 931706235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82ad920a7e9e43245938041b026059eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lightInnerColor: {r: 0.69411767, g: 1, b: 0.9960785, a: 0}
+  lightOuterColor: {r: 0.6924528, g: 1, b: 0.99707514, a: 0}
+  lightInnerRadius: 870
+  lightOuterRadius: 920
+--- !u!114 &931706238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 931706235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e1bcd9ade8e1a84d9a2081a3b405f1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lightIndex: 0
+  pointLightRenderTexture: {fileID: 0}
+  shadowMaskRenderTexture: {fileID: 0}
+  lightShadowCompositeRenderTexture: {fileID: 0}
+--- !u!4 &931706239
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 931706235}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1000, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1356574603}
+  m_Father: {fileID: 0}
+  m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1105375246
 GameObject:
@@ -1182,6 +1261,95 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1105375246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ae0454aa2bb4f843b1b9b15e7922d1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 519420031}
+--- !u!1 &1356574602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1356574603}
+  - component: {fileID: 1356574605}
+  - component: {fileID: 1356574604}
+  m_Layer: 7
+  m_Name: Camera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1356574603
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356574602}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 931706239}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!20 &1356574604
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356574602}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 1, g: 1, b: 1, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 50
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 1
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 128
+  m_RenderingPath: 2
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 1
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!114 &1356574605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356574602}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7ae0454aa2bb4f843b1b9b15e7922d1c, type: 3}
@@ -1470,7 +1638,7 @@ MonoBehaviour:
   lightInnerColor: {r: 0.5019608, g: 0, b: 0.3642868, a: 0}
   lightOuterColor: {r: 1, g: 0, b: 0.6980634, a: 0}
   lightInnerRadius: 0
-  lightOuterRadius: 10
+  lightOuterRadius: 8
 --- !u!4 &1426293296
 Transform:
   m_ObjectHideFlags: 0
@@ -1502,7 +1670,6 @@ MonoBehaviour:
   lightIndex: 0
   pointLightRenderTexture: {fileID: 0}
   shadowMaskRenderTexture: {fileID: 0}
-  blurredShadowMaskRenderTexture: {fileID: 0}
   lightShadowCompositeRenderTexture: {fileID: 0}
 --- !u!1 &1432319530
 GameObject:
@@ -1815,7 +1982,7 @@ MonoBehaviour:
   lightInnerColor: {r: 0, g: 0.5019608, b: 0.0013732911, a: 0}
   lightOuterColor: {r: 0, g: 1, b: 0.062031984, a: 0}
   lightInnerRadius: 0
-  lightOuterRadius: 10
+  lightOuterRadius: 8
 --- !u!114 &1747754858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1831,7 +1998,6 @@ MonoBehaviour:
   lightIndex: 0
   pointLightRenderTexture: {fileID: 0}
   shadowMaskRenderTexture: {fileID: 0}
-  blurredShadowMaskRenderTexture: {fileID: 0}
   lightShadowCompositeRenderTexture: {fileID: 0}
 --- !u!4 &1747754859
 Transform:

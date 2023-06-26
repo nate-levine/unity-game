@@ -10,11 +10,9 @@ public class CustomLight : MonoBehaviour
 
     public RenderTexture pointLightRenderTexture;
     public RenderTexture shadowMaskRenderTexture;
-    public RenderTexture blurredShadowMaskRenderTexture;
     public RenderTexture lightShadowCompositeRenderTexture;
 
     private Material material;
-    private Material blurMaterial;
     //
     private Camera cam;
 
@@ -22,7 +20,6 @@ public class CustomLight : MonoBehaviour
     {
         // Initialize material.
         material = new Material(Shader.Find("Custom/LightShadowComposite"));
-        blurMaterial = new Material(Shader.Find("Custom/GaussianBlur"));
     }
     void Start()
     {
@@ -33,7 +30,6 @@ public class CustomLight : MonoBehaviour
 
         pointLightRenderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
         shadowMaskRenderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
-        blurredShadowMaskRenderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
         lightShadowCompositeRenderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
 
         if (transform.GetChild(0).GetComponent<Camera>())
@@ -45,18 +41,13 @@ public class CustomLight : MonoBehaviour
 
     public void DrawLight()
     {
-        RenderTexture temporaryRenderTexture0 = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
-        Graphics.Blit(shadowMaskRenderTexture, temporaryRenderTexture0, blurMaterial, 0);
-        Graphics.Blit(temporaryRenderTexture0, blurredShadowMaskRenderTexture, blurMaterial, 1);
-        RenderTexture.ReleaseTemporary(temporaryRenderTexture0);
-
         material.SetTexture("_LightTex", pointLightRenderTexture);
         if (GetComponent<ShadowRenderer>())
         {
             if (GetComponent<ShadowRenderer>().initialized)
             {
                 material.EnableKeyword("SHADOW_MASK_IS_SET");
-                material.SetTexture("_ShadowTex", blurredShadowMaskRenderTexture);
+                material.SetTexture("_ShadowTex", shadowMaskRenderTexture);
             }
         }
 
