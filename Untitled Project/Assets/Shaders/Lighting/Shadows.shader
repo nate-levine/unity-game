@@ -22,10 +22,12 @@ Shader "Custom/Shadows"
 
             #include "UnityCG.cginc"
 
+            // Defines the data for each vertex.
             struct WriteVertex
             {
                 float3 position;
             };
+            // Defines the data for each triangle.
             struct WriteTriangle
             {
                 WriteVertex vertices[3];
@@ -52,10 +54,14 @@ Shader "Custom/Shadows"
             {
                 v2f output;
 
+                // Get the index of the first vertex in the triangle.
                 WriteTriangle writeTriangle = _WriteTriangles[vertexID / 3];
+                // Get the specific index of that vertex.
                 WriteVertex input = writeTriangle.vertices[vertexID % 3];
 
+                // Transform the vertex from world space to clip space.
                 output.vertex = UnityObjectToClipPos(float4(input.position, 1));
+                // Define the triangle normal.
                 output.normal = writeTriangle.normal;
 
                 return output;
@@ -63,7 +69,7 @@ Shader "Custom/Shadows"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                // sample the texture
+                // Define the triangle color.
                 fixed4 col = fixed4(0, 0, 0, 1);
                 return col;
             }

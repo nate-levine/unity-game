@@ -63,16 +63,17 @@ Shader "Custom/PointLight"
                 float dist = distance(float3(worldUV, 0), _LightPos);
 
                 fixed4 col;
-                // If the point is within the ligh radius, set it as the light color.
+                // If the point is within the inner light radius, set it as the light color.
                 if (dist < _LightInnerRadius)
                 {
                     col = fixed4(_LightInnerColor, 1);
                 }
+                // If the point is within the inner and outer light radius, lerp between the two radii properties.
                 else if (dist > _LightInnerRadius && dist < _LightOuterRadius)
                 {
                     // Map the distance [_LightInnerRadius, _LightOuterRadius] -> [0, 1].
                     float strength = (dist - _LightOuterRadius) / (_LightInnerRadius - _LightOuterRadius);
-                    // Inverse square law.
+                    // Inverse square law to mimic real lighting.
                     strength = pow(strength, 2);
                     // Lerp the colors based on strength.
                     float r = (strength * (_LightInnerColor.r - _LightOuterColor.r)) + _LightOuterColor.r;
@@ -81,6 +82,7 @@ Shader "Custom/PointLight"
                     // Multiply by the color.
                     col = fixed4(float3(r, g, b) * strength, 1);
                 }
+                // If the point is outside the outer light radius, return no lighting.
                 else
                 {
                     col = fixed4(0, 0, 0, 1);

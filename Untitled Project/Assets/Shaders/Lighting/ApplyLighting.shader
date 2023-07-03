@@ -1,25 +1,19 @@
-Shader "Custom/CompositeShadows"
+Shader "Custom/ApplyLighting"
 {
     Properties
     {
-        _MainTex("Tex", 2DArray) = "" {}
+        _MainTex ("Texture", 2D) = "white" {}
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
         LOD 100
 
-        Cull Off
-        ZWrite Off
-
         Pass
         {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            // texture arrays are not available everywhere,
-            // only compile shader on platforms where they are
-            #pragma require 2darray
 
             #include "UnityCG.cginc"
 
@@ -35,9 +29,9 @@ Shader "Custom/CompositeShadows"
                 float4 vertex : SV_POSITION;
             };
 
-            UNITY_DECLARE_TEX2DARRAY(_MainTex);
-            int _Depth;
+            sampler2D _MainTex;
             float4 _MainTex_ST;
+            sampler2D _LightingTex;
 
             v2f vert (appdata v)
             {
@@ -47,15 +41,14 @@ Shader "Custom/CompositeShadows"
                 return o;
             }
 
-            fixed4 frag(v2f i) : SV_Target
+            fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = 0;
-
-                // composite
-                for (int index = 0; index < _Depth; index++)
-                {
-                    col.rgb += UNITY_SAMPLE_TEX2DARRAY(_MainTex, float3(i.uv, index)).rgb;
-                }
+                // Sample the main camera render texture.
+                fixed4 MainTex = tex2D(_MainTex, i.uv);
+                // Sample the composite light map.
+                fixed4 LightingTex = tex2D(_LightingTex, i.uv);
+                // Composite them together.
+                fixed4 col = fixed4((MainTex * LightingTex).xyz, 1);
 
                 return col;
             }

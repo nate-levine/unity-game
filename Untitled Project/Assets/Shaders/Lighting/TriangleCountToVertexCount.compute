@@ -4,6 +4,7 @@
 */
 #pragma kernel Main
 
+// Indirect arguments buffer.
 struct IndirectArguments {
 	uint numberOfVerticesPerInstance;
 	uint numberOfInstances;
